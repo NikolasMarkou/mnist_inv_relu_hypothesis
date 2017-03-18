@@ -5,7 +5,7 @@ ReLU's layers are ofter used for training deep networks. They offer a non-linear
 
 Their usefulness comes from zeroing out parts of the output and creating the sparseness necessary for the network to work.
 
-A lot of the network's layer's output is lost using ReLU's so in this post I'll explore the possibility of using the predictive power of all the ReLU's discarded weights.
+A lot of the network's layer's output is lost using ReLU's so in this post I'll explore the possibility of using the predictive power of all the ReLU's discarded data.
 
 ## Methodology
 We'll begin with some stock trivial models. 
@@ -21,3 +21,4 @@ We will then run the models and check if it increases the accuracy. We will test
 
 All trials will be tested on mnist dataset using the caffe framework
 
+## Trials
