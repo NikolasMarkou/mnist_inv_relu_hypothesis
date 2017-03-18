@@ -13,6 +13,10 @@ We'll begin with some stock trivial models.
 We will replace every ReLU with a junction first inverting the output by multiplying with -1 and then ReLU it, 
 keeping both the negative and the positive parts in different parts of the layer but both being positive
 
+![original](images/conv_original.png)
+
+![original](images/conv_junction.png)
+
 We will then run the models and check if it increases the accuracy. We will test several permutation, using shared weights or different weights along the junctions.
 
 All trials will be tested on mnist dataset using the caffe framework
