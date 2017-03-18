@@ -15,3 +15,5 @@ keeping both the negative and the positive parts in different parts of the layer
 
 We will then run the models and check if it increases the accuracy. We will test several permutation, using shared weights or different weights along the junctions.
 
+All trials will be tested on mnist dataset using the caffe framework
+
