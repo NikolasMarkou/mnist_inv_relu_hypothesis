@@ -1,0 +1,402 @@
+name: "MNIST_NET"
+############################
+layer {
+  name: "data"
+  type: "ImageData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  image_data_param {
+    is_color : false
+    shuffle : true
+    source: "train.txt"
+    batch_size: 300
+    crop_size : 27
+  }
+}
+layer {
+  name: "data"
+  type: "ImageData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TEST
+  }
+  image_data_param {
+    is_color : false
+    shuffle : true
+    source: "test.txt"
+    batch_size: 100
+    crop_size : 27
+  }
+}
+############################
+## Scale from [0-255] [-1 +1]
+layer {
+  name: "data_scaling"
+  type: "Power"
+  bottom: "data"
+  top: "data"
+  power_param {
+    power: 1
+    scale: 0.0078125
+    shift: -1.0
+  }
+}
+
+############################
+
+layer {
+  name: "conv1_dual"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1_dual"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+    name : "conv1_w_dual"
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+    name : "conv1_b_dual"
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "relu/conv1_dual"
+  type: "ReLU"
+  bottom: "conv1_dual"
+  top: "relu/conv1_dual"
+}
+
+layer {
+  name: "conv1_minus_dual"
+  type: "Power"
+  bottom: "conv1_dual"
+  top: "conv1_minus_dual"
+  power_param {
+    power: 1
+    scale: -1.0
+    shift: 0
+  }
+}
+
+layer {
+  name: "relu/conv1_minus_dual"
+  type: "ReLU"
+  bottom: "conv1_minus_dual"
+  top: "relu/conv1_minus_dual"
+}
+
+############################
+
+layer {
+  name: "conv2_lhs_dual"
+  type: "Convolution"
+  bottom: "relu/conv1_minus_dual"
+  top: "conv2_lhs_dual"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+    name : "conv2_w_dual"
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+    name : "conv2_b_dual"
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "relu/conv2_lhs_dual"
+  type: "ReLU"
+  bottom: "conv2_lhs_dual"
+  top: "conv2_lhs_dual"
+}
+
+############################
+
+layer {
+  name: "conv2_rhs_dual"
+  type: "Convolution"
+  bottom: "relu/conv1_dual"
+  top: "conv2_rhs_dual"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+    name : "conv2_w_dual"
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+    name : "conv2_b_dual"
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "relu/conv2_rhs_dual"
+  type: "ReLU"
+  bottom: "conv2_rhs_dual"
+  top: "conv2_rhs_dual"
+}
+
+############################
+
+layer {
+  name: "fc_10_lhs_dual"
+  type: "InnerProduct"
+  bottom: "conv2_lhs_dual"
+  top: "fc_10_lhs_dual"
+  param {
+    lr_mult: 5
+    decay_mult: 1
+    name: "fc_10_w_0_dual"
+  }
+  param {
+    lr_mult: 10
+    decay_mult: 0
+    name: "fc_10_b_0_dual"
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+############################
+
+layer {
+  name: "fc_10_rhs_dual"
+  type: "InnerProduct"
+  bottom: "conv2_rhs_dual"
+  top: "fc_10_rhs_dual"
+  param {
+    lr_mult: 5
+    decay_mult: 1
+    name: "fc_10_w_1_dual"
+  }
+  param {
+    lr_mult: 10
+    decay_mult: 0
+    name: "fc_10_b_1_dual"
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+############################
+
+layer {
+  name: "fc_10_dual"
+  type: "Eltwise"
+  bottom: "fc_10_rhs_dual"
+  bottom: "fc_10_lhs_dual"
+  top: "fc_10_dual"
+  eltwise_param {
+    operation: SUM
+    coeff:  1
+    coeff:  1
+  }
+}
+
+############################
+layer {
+  name: "loss_dual"
+  type: "SoftmaxWithLoss"
+  bottom: "fc_10_dual"
+  bottom: "label"
+  top: "loss_dual"
+  include {
+    phase: TRAIN
+  }
+}
+layer {
+  name: "accuracy_dual"
+  type: "Accuracy"
+  bottom: "fc_10_dual"
+  bottom: "label"
+  top: "accuracy_dual"
+  include {
+    phase: TEST
+  }
+}
+
+############################
+
+layer {
+  name: "conv1_single"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1_single"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+    name : "conv1_w_single"
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+    name : "conv1_b_single"
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "relu/conv1_single"
+  type: "ReLU"
+  bottom: "conv1_single"
+  top: "relu/conv1_single"
+}
+
+############################
+
+layer {
+  name: "conv2_single"
+  type: "Convolution"
+  bottom: "relu/conv1_single"
+  top: "conv2_single"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+    name : "conv2_w_single"
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+    name : "conv2_b_single"
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "relu/conv2_single"
+  type: "ReLU"
+  bottom: "conv2_single"
+  top: "conv2_single"
+}
+
+############################
+
+layer {
+  name: "fc_10_single"
+  type: "InnerProduct"
+  bottom: "conv2_single"
+  top: "fc_10_single"
+  param {
+    lr_mult: 5
+    decay_mult: 1
+    name: "fc_10_w_single"
+  }
+  param {
+    lr_mult: 10
+    decay_mult: 0
+    name: "fc_10_b_single"
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+############################
+layer {
+  name: "loss_single"
+  type: "SoftmaxWithLoss"
+  bottom: "fc_10_single"
+  bottom: "label"
+  top: "loss_single"
+  include {
+    phase: TRAIN
+  }
+}
+layer {
+  name: "accuracy_single"
+  type: "Accuracy"
+  bottom: "fc_10_single"
+  bottom: "label"
+  top: "accuracy_single"
+  include {
+    phase: TEST
+  }
+}
