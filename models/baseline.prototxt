@@ -189,12 +189,12 @@ layer {
   param {
     lr_mult: 5
     decay_mult: 1
-    name: "fc_10_w_0_dual"
+    name: "fc_10_w_dual"
   }
   param {
     lr_mult: 10
     decay_mult: 0
-    name: "fc_10_b_0_dual"
+    name: "fc_10_b_dual"
   }
   inner_product_param {
     num_output: 10
@@ -218,12 +218,12 @@ layer {
   param {
     lr_mult: 5
     decay_mult: 1
-    name: "fc_10_w_1_dual"
+    name: "fc_10_w_dual"
   }
   param {
     lr_mult: 10
     decay_mult: 0
-    name: "fc_10_b_1_dual"
+    name: "fc_10_b_dual"
   }
   inner_product_param {
     num_output: 10
