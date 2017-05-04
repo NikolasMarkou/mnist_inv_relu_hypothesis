@@ -1,0 +1,1712 @@
+I0504 08:48:02.057667 13354 caffe.cpp:217] Using GPUs 0
+I0504 08:48:02.082789 13354 caffe.cpp:222] GPU 0: GeForce GTX TITAN X
+I0504 08:48:02.530504 13354 solver.cpp:48] Initializing solver from parameters: 
+test_iter: 100
+test_interval: 5000
+base_lr: 0.01
+display: 1000
+max_iter: 100000
+lr_policy: "step"
+gamma: 0.5
+momentum: 0.75
+weight_decay: 0.0002
+stepsize: 10000
+snapshot: 100000
+snapshot_prefix: "mnist"
+solver_mode: GPU
+device_id: 0
+net: "train_val_inv_1.prototxt"
+train_state {
+  level: 0
+  stage: ""
+}
+test_initialization: true
+average_loss: 40
+I0504 08:48:02.530616 13354 solver.cpp:91] Creating training net from net file: train_val_inv_1.prototxt
+I0504 08:48:02.531071 13354 net.cpp:338] The NetState phase (0) differed from the phase (1) specified by a rule in layer data
+I0504 08:48:02.531090 13354 net.cpp:338] The NetState phase (0) differed from the phase (1) specified by a rule in layer accuracy_dual
+I0504 08:48:02.531096 13354 net.cpp:338] The NetState phase (0) differed from the phase (1) specified by a rule in layer accuracy_single
+I0504 08:48:02.531261 13354 net.cpp:74] Initializing net from parameters: 
+name: "MNIST_NET"
+state {
+  phase: TRAIN
+  level: 0
+  stage: ""
+}
+layer {
+  name: "data"
+  type: "ImageData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  image_data_param {
+    source: "train.txt"
+    batch_size: 300
+    crop_size: 27
+    shuffle: true
+    is_color: false
+  }
+}
+layer {
+  name: "data_scaling"
+  type: "Power"
+  bottom: "data"
+  top: "data"
+  power_param {
+    power: 1
+    scale: 0.0078125
+    shift: -1
+  }
+}
+layer {
+  name: "conv1_dual"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1_dual"
+  param {
+    name: "conv1_w_dual"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    name: "conv1_b_dual"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu/conv1_dual"
+  type: "ReLU"
+  bottom: "conv1_dual"
+  top: "relu/conv1_dual"
+}
+layer {
+  name: "conv1_minus_dual"
+  type: "Power"
+  bottom: "conv1_dual"
+  top: "conv1_minus_dual"
+  power_param {
+    power: 1
+    scale: -1
+    shift: 0
+  }
+}
+layer {
+  name: "relu/conv1_minus_dual"
+  type: "ReLU"
+  bottom: "conv1_minus_dual"
+  top: "relu/conv1_minus_dual"
+}
+layer {
+  name: "conv2_lhs_dual"
+  type: "Convolution"
+  bottom: "relu/conv1_minus_dual"
+  top: "conv2_lhs_dual"
+  param {
+    name: "conv2_w_dual"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    name: "conv2_b_dual"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu/conv2_lhs_dual"
+  type: "ReLU"
+  bottom: "conv2_lhs_dual"
+  top: "conv2_lhs_dual"
+}
+layer {
+  name: "conv2_rhs_dual"
+  type: "Convolution"
+  bottom: "relu/conv1_dual"
+  top: "conv2_rhs_dual"
+  param {
+    name: "conv2_w_dual"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    name: "conv2_b_dual"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu/conv2_rhs_dual"
+  type: "ReLU"
+  bottom: "conv2_rhs_dual"
+  top: "conv2_rhs_dual"
+}
+layer {
+  name: "fc_10_lhs_dual"
+  type: "InnerProduct"
+  bottom: "conv2_lhs_dual"
+  top: "fc_10_lhs_dual"
+  param {
+    name: "fc_10_w_0_dual"
+    lr_mult: 5
+    decay_mult: 1
+  }
+  param {
+    name: "fc_10_b_0_dual"
+    lr_mult: 10
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "fc_10_rhs_dual"
+  type: "InnerProduct"
+  bottom: "conv2_rhs_dual"
+  top: "fc_10_rhs_dual"
+  param {
+    name: "fc_10_w_1_dual"
+    lr_mult: 5
+    decay_mult: 1
+  }
+  param {
+    name: "fc_10_b_1_dual"
+    lr_mult: 10
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "fc_10_dual"
+  type: "Eltwise"
+  bottom: "fc_10_rhs_dual"
+  bottom: "fc_10_lhs_dual"
+  top: "fc_10_dual"
+  eltwise_param {
+    operation: SUM
+    coeff: 1
+    coeff: 1
+  }
+}
+layer {
+  name: "loss_dual"
+  type: "SoftmaxWithLoss"
+  bottom: "fc_10_dual"
+  bottom: "label"
+  top: "loss_dual"
+  include {
+    phase: TRAIN
+  }
+}
+layer {
+  name: "conv1_single"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1_single"
+  param {
+    name: "conv1_w_single"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    name: "conv1_b_single"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu/conv1_single"
+  type: "ReLU"
+  bottom: "conv1_single"
+  top: "relu/conv1_single"
+}
+layer {
+  name: "conv2_single"
+  type: "Convolution"
+  bottom: "relu/conv1_single"
+  top: "conv2_single"
+  param {
+    name: "conv2_w_single"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    name: "conv2_b_single"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu/conv2_single"
+  type: "ReLU"
+  bottom: "conv2_single"
+  top: "conv2_single"
+}
+layer {
+  name: "fc_10_single"
+  type: "InnerProduct"
+  bottom: "conv2_single"
+  top: "fc_10_single"
+  param {
+    name: "fc_10_w_single"
+    lr_mult: 5
+    decay_mult: 1
+  }
+  param {
+    name: "fc_10_b_single"
+    lr_mult: 10
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "loss_single"
+  type: "SoftmaxWithLoss"
+  bottom: "fc_10_single"
+  bottom: "label"
+  top: "loss_single"
+  include {
+    phase: TRAIN
+  }
+}
+I0504 08:48:02.531383 13354 layer_factory.hpp:77] Creating layer data
+I0504 08:48:02.531409 13354 net.cpp:116] Creating Layer data
+I0504 08:48:02.531414 13354 net.cpp:424] data -> data
+I0504 08:48:02.531430 13354 net.cpp:424] data -> label
+I0504 08:48:02.531440 13354 image_data_layer.cpp:38] Opening file train.txt
+I0504 08:48:02.542747 13354 image_data_layer.cpp:53] Shuffling data
+I0504 08:48:02.546320 13354 image_data_layer.cpp:58] A total of 60000 images.
+I0504 08:48:02.565241 13354 image_data_layer.cpp:85] output data size: 300,1,28,28
+I0504 08:48:02.573406 13354 net.cpp:166] Setting up data
+I0504 08:48:02.573437 13354 net.cpp:173] Top shape: 300 1 28 28 (235200)
+I0504 08:48:02.573443 13354 net.cpp:173] Top shape: 300 (300)
+I0504 08:48:02.573447 13354 net.cpp:181] Memory required for data: 942000
+I0504 08:48:02.573457 13354 layer_factory.hpp:77] Creating layer label_data_1_split
+I0504 08:48:02.573472 13354 net.cpp:116] Creating Layer label_data_1_split
+I0504 08:48:02.573479 13354 net.cpp:450] label_data_1_split <- label
+I0504 08:48:02.573493 13354 net.cpp:424] label_data_1_split -> label_data_1_split_0
+I0504 08:48:02.573508 13354 net.cpp:424] label_data_1_split -> label_data_1_split_1
+I0504 08:48:02.573602 13354 net.cpp:166] Setting up label_data_1_split
+I0504 08:48:02.573616 13354 net.cpp:173] Top shape: 300 (300)
+I0504 08:48:02.573621 13354 net.cpp:173] Top shape: 300 (300)
+I0504 08:48:02.573623 13354 net.cpp:181] Memory required for data: 944400
+I0504 08:48:02.573628 13354 layer_factory.hpp:77] Creating layer data_scaling
+I0504 08:48:02.573637 13354 net.cpp:116] Creating Layer data_scaling
+I0504 08:48:02.573642 13354 net.cpp:450] data_scaling <- data
+I0504 08:48:02.573647 13354 net.cpp:411] data_scaling -> data (in-place)
+I0504 08:48:02.573657 13354 net.cpp:166] Setting up data_scaling
+I0504 08:48:02.573667 13354 net.cpp:173] Top shape: 300 1 28 28 (235200)
+I0504 08:48:02.573670 13354 net.cpp:181] Memory required for data: 1885200
+I0504 08:48:02.573698 13354 layer_factory.hpp:77] Creating layer data_data_scaling_0_split
+I0504 08:48:02.573704 13354 net.cpp:116] Creating Layer data_data_scaling_0_split
+I0504 08:48:02.573709 13354 net.cpp:450] data_data_scaling_0_split <- data
+I0504 08:48:02.573714 13354 net.cpp:424] data_data_scaling_0_split -> data_data_scaling_0_split_0
+I0504 08:48:02.573721 13354 net.cpp:424] data_data_scaling_0_split -> data_data_scaling_0_split_1
+I0504 08:48:02.573770 13354 net.cpp:166] Setting up data_data_scaling_0_split
+I0504 08:48:02.573779 13354 net.cpp:173] Top shape: 300 1 28 28 (235200)
+I0504 08:48:02.573784 13354 net.cpp:173] Top shape: 300 1 28 28 (235200)
+I0504 08:48:02.573788 13354 net.cpp:181] Memory required for data: 3766800
+I0504 08:48:02.573792 13354 layer_factory.hpp:77] Creating layer conv1_dual
+I0504 08:48:02.573810 13354 net.cpp:116] Creating Layer conv1_dual
+I0504 08:48:02.573817 13354 net.cpp:450] conv1_dual <- data_data_scaling_0_split_0
+I0504 08:48:02.573823 13354 net.cpp:424] conv1_dual -> conv1_dual
+I0504 08:48:02.895536 13354 net.cpp:166] Setting up conv1_dual
+I0504 08:48:02.895571 13354 net.cpp:173] Top shape: 300 36 13 13 (1825200)
+I0504 08:48:02.895576 13354 net.cpp:181] Memory required for data: 11067600
+I0504 08:48:02.895598 13354 layer_factory.hpp:77] Creating layer conv1_dual_conv1_dual_0_split
+I0504 08:48:02.895612 13354 net.cpp:116] Creating Layer conv1_dual_conv1_dual_0_split
+I0504 08:48:02.895617 13354 net.cpp:450] conv1_dual_conv1_dual_0_split <- conv1_dual
+I0504 08:48:02.895625 13354 net.cpp:424] conv1_dual_conv1_dual_0_split -> conv1_dual_conv1_dual_0_split_0
+I0504 08:48:02.895637 13354 net.cpp:424] conv1_dual_conv1_dual_0_split -> conv1_dual_conv1_dual_0_split_1
+I0504 08:48:02.895707 13354 net.cpp:166] Setting up conv1_dual_conv1_dual_0_split
+I0504 08:48:02.895719 13354 net.cpp:173] Top shape: 300 36 13 13 (1825200)
+I0504 08:48:02.895725 13354 net.cpp:173] Top shape: 300 36 13 13 (1825200)
+I0504 08:48:02.895730 13354 net.cpp:181] Memory required for data: 25669200
+I0504 08:48:02.895736 13354 layer_factory.hpp:77] Creating layer relu/conv1_dual
+I0504 08:48:02.895745 13354 net.cpp:116] Creating Layer relu/conv1_dual
+I0504 08:48:02.895750 13354 net.cpp:450] relu/conv1_dual <- conv1_dual_conv1_dual_0_split_0
+I0504 08:48:02.895758 13354 net.cpp:424] relu/conv1_dual -> relu/conv1_dual
+I0504 08:48:02.896160 13354 net.cpp:166] Setting up relu/conv1_dual
+I0504 08:48:02.896173 13354 net.cpp:173] Top shape: 300 36 13 13 (1825200)
+I0504 08:48:02.896176 13354 net.cpp:181] Memory required for data: 32970000
+I0504 08:48:02.896180 13354 layer_factory.hpp:77] Creating layer conv1_minus_dual
+I0504 08:48:02.896186 13354 net.cpp:116] Creating Layer conv1_minus_dual
+I0504 08:48:02.896189 13354 net.cpp:450] conv1_minus_dual <- conv1_dual_conv1_dual_0_split_1
+I0504 08:48:02.896194 13354 net.cpp:424] conv1_minus_dual -> conv1_minus_dual
+I0504 08:48:02.896216 13354 net.cpp:166] Setting up conv1_minus_dual
+I0504 08:48:02.896220 13354 net.cpp:173] Top shape: 300 36 13 13 (1825200)
+I0504 08:48:02.896224 13354 net.cpp:181] Memory required for data: 40270800
+I0504 08:48:02.896226 13354 layer_factory.hpp:77] Creating layer relu/conv1_minus_dual
+I0504 08:48:02.896232 13354 net.cpp:116] Creating Layer relu/conv1_minus_dual
+I0504 08:48:02.896234 13354 net.cpp:450] relu/conv1_minus_dual <- conv1_minus_dual
+I0504 08:48:02.896239 13354 net.cpp:424] relu/conv1_minus_dual -> relu/conv1_minus_dual
+I0504 08:48:02.896383 13354 net.cpp:166] Setting up relu/conv1_minus_dual
+I0504 08:48:02.896392 13354 net.cpp:173] Top shape: 300 36 13 13 (1825200)
+I0504 08:48:02.896395 13354 net.cpp:181] Memory required for data: 47571600
+I0504 08:48:02.896399 13354 layer_factory.hpp:77] Creating layer conv2_lhs_dual
+I0504 08:48:02.896409 13354 net.cpp:116] Creating Layer conv2_lhs_dual
+I0504 08:48:02.896414 13354 net.cpp:450] conv2_lhs_dual <- relu/conv1_minus_dual
+I0504 08:48:02.896419 13354 net.cpp:424] conv2_lhs_dual -> conv2_lhs_dual
+I0504 08:48:02.898025 13354 net.cpp:166] Setting up conv2_lhs_dual
+I0504 08:48:02.898044 13354 net.cpp:173] Top shape: 300 36 6 6 (388800)
+I0504 08:48:02.898068 13354 net.cpp:181] Memory required for data: 49126800
+I0504 08:48:02.898078 13354 layer_factory.hpp:77] Creating layer relu/conv2_lhs_dual
+I0504 08:48:02.898087 13354 net.cpp:116] Creating Layer relu/conv2_lhs_dual
+I0504 08:48:02.898089 13354 net.cpp:450] relu/conv2_lhs_dual <- conv2_lhs_dual
+I0504 08:48:02.898094 13354 net.cpp:411] relu/conv2_lhs_dual -> conv2_lhs_dual (in-place)
+I0504 08:48:02.898414 13354 net.cpp:166] Setting up relu/conv2_lhs_dual
+I0504 08:48:02.898427 13354 net.cpp:173] Top shape: 300 36 6 6 (388800)
+I0504 08:48:02.898429 13354 net.cpp:181] Memory required for data: 50682000
+I0504 08:48:02.898433 13354 layer_factory.hpp:77] Creating layer conv2_rhs_dual
+I0504 08:48:02.898443 13354 net.cpp:116] Creating Layer conv2_rhs_dual
+I0504 08:48:02.898447 13354 net.cpp:450] conv2_rhs_dual <- relu/conv1_dual
+I0504 08:48:02.898453 13354 net.cpp:424] conv2_rhs_dual -> conv2_rhs_dual
+I0504 08:48:02.900249 13354 net.cpp:166] Setting up conv2_rhs_dual
+I0504 08:48:02.900262 13354 net.cpp:173] Top shape: 300 36 6 6 (388800)
+I0504 08:48:02.900265 13354 net.cpp:181] Memory required for data: 52237200
+I0504 08:48:02.900271 13354 net.cpp:509] Sharing parameters 'conv2_w_dual' owned by layer 'conv2_lhs_dual', param index 0
+I0504 08:48:02.900275 13354 net.cpp:509] Sharing parameters 'conv2_b_dual' owned by layer 'conv2_lhs_dual', param index 1
+I0504 08:48:02.900279 13354 layer_factory.hpp:77] Creating layer relu/conv2_rhs_dual
+I0504 08:48:02.900283 13354 net.cpp:116] Creating Layer relu/conv2_rhs_dual
+I0504 08:48:02.900286 13354 net.cpp:450] relu/conv2_rhs_dual <- conv2_rhs_dual
+I0504 08:48:02.900291 13354 net.cpp:411] relu/conv2_rhs_dual -> conv2_rhs_dual (in-place)
+I0504 08:48:02.901604 13354 net.cpp:166] Setting up relu/conv2_rhs_dual
+I0504 08:48:02.901613 13354 net.cpp:173] Top shape: 300 36 6 6 (388800)
+I0504 08:48:02.901617 13354 net.cpp:181] Memory required for data: 53792400
+I0504 08:48:02.901619 13354 layer_factory.hpp:77] Creating layer fc_10_lhs_dual
+I0504 08:48:02.901626 13354 net.cpp:116] Creating Layer fc_10_lhs_dual
+I0504 08:48:02.901630 13354 net.cpp:450] fc_10_lhs_dual <- conv2_lhs_dual
+I0504 08:48:02.901635 13354 net.cpp:424] fc_10_lhs_dual -> fc_10_lhs_dual
+I0504 08:48:02.901798 13354 net.cpp:166] Setting up fc_10_lhs_dual
+I0504 08:48:02.901805 13354 net.cpp:173] Top shape: 300 10 (3000)
+I0504 08:48:02.901808 13354 net.cpp:181] Memory required for data: 53804400
+I0504 08:48:02.901814 13354 layer_factory.hpp:77] Creating layer fc_10_rhs_dual
+I0504 08:48:02.901821 13354 net.cpp:116] Creating Layer fc_10_rhs_dual
+I0504 08:48:02.901823 13354 net.cpp:450] fc_10_rhs_dual <- conv2_rhs_dual
+I0504 08:48:02.901829 13354 net.cpp:424] fc_10_rhs_dual -> fc_10_rhs_dual
+I0504 08:48:02.901963 13354 net.cpp:166] Setting up fc_10_rhs_dual
+I0504 08:48:02.901971 13354 net.cpp:173] Top shape: 300 10 (3000)
+I0504 08:48:02.901973 13354 net.cpp:181] Memory required for data: 53816400
+I0504 08:48:02.901980 13354 layer_factory.hpp:77] Creating layer fc_10_dual
+I0504 08:48:02.901986 13354 net.cpp:116] Creating Layer fc_10_dual
+I0504 08:48:02.901989 13354 net.cpp:450] fc_10_dual <- fc_10_rhs_dual
+I0504 08:48:02.901993 13354 net.cpp:450] fc_10_dual <- fc_10_lhs_dual
+I0504 08:48:02.901996 13354 net.cpp:424] fc_10_dual -> fc_10_dual
+I0504 08:48:02.902020 13354 net.cpp:166] Setting up fc_10_dual
+I0504 08:48:02.902026 13354 net.cpp:173] Top shape: 300 10 (3000)
+I0504 08:48:02.902029 13354 net.cpp:181] Memory required for data: 53828400
+I0504 08:48:02.902031 13354 layer_factory.hpp:77] Creating layer loss_dual
+I0504 08:48:02.902040 13354 net.cpp:116] Creating Layer loss_dual
+I0504 08:48:02.902042 13354 net.cpp:450] loss_dual <- fc_10_dual
+I0504 08:48:02.902045 13354 net.cpp:450] loss_dual <- label_data_1_split_0
+I0504 08:48:02.902050 13354 net.cpp:424] loss_dual -> loss_dual
+I0504 08:48:02.902057 13354 layer_factory.hpp:77] Creating layer loss_dual
+I0504 08:48:02.903167 13354 net.cpp:166] Setting up loss_dual
+I0504 08:48:02.903178 13354 net.cpp:173] Top shape: (1)
+I0504 08:48:02.903182 13354 net.cpp:176]     with loss weight 1
+I0504 08:48:02.903209 13354 net.cpp:181] Memory required for data: 53828404
+I0504 08:48:02.903213 13354 layer_factory.hpp:77] Creating layer conv1_single
+I0504 08:48:02.903223 13354 net.cpp:116] Creating Layer conv1_single
+I0504 08:48:02.903226 13354 net.cpp:450] conv1_single <- data_data_scaling_0_split_1
+I0504 08:48:02.903233 13354 net.cpp:424] conv1_single -> conv1_single
+I0504 08:48:02.906240 13354 net.cpp:166] Setting up conv1_single
+I0504 08:48:02.906253 13354 net.cpp:173] Top shape: 300 36 13 13 (1825200)
+I0504 08:48:02.906256 13354 net.cpp:181] Memory required for data: 61129204
+I0504 08:48:02.906263 13354 layer_factory.hpp:77] Creating layer relu/conv1_single
+I0504 08:48:02.906270 13354 net.cpp:116] Creating Layer relu/conv1_single
+I0504 08:48:02.906272 13354 net.cpp:450] relu/conv1_single <- conv1_single
+I0504 08:48:02.906276 13354 net.cpp:424] relu/conv1_single -> relu/conv1_single
+I0504 08:48:02.907294 13354 net.cpp:166] Setting up relu/conv1_single
+I0504 08:48:02.907306 13354 net.cpp:173] Top shape: 300 36 13 13 (1825200)
+I0504 08:48:02.907310 13354 net.cpp:181] Memory required for data: 68430004
+I0504 08:48:02.907312 13354 layer_factory.hpp:77] Creating layer conv2_single
+I0504 08:48:02.907321 13354 net.cpp:116] Creating Layer conv2_single
+I0504 08:48:02.907325 13354 net.cpp:450] conv2_single <- relu/conv1_single
+I0504 08:48:02.907330 13354 net.cpp:424] conv2_single -> conv2_single
+I0504 08:48:02.910768 13354 net.cpp:166] Setting up conv2_single
+I0504 08:48:02.910780 13354 net.cpp:173] Top shape: 300 36 6 6 (388800)
+I0504 08:48:02.910784 13354 net.cpp:181] Memory required for data: 69985204
+I0504 08:48:02.910789 13354 layer_factory.hpp:77] Creating layer relu/conv2_single
+I0504 08:48:02.910795 13354 net.cpp:116] Creating Layer relu/conv2_single
+I0504 08:48:02.910799 13354 net.cpp:450] relu/conv2_single <- conv2_single
+I0504 08:48:02.910802 13354 net.cpp:411] relu/conv2_single -> conv2_single (in-place)
+I0504 08:48:02.911825 13354 net.cpp:166] Setting up relu/conv2_single
+I0504 08:48:02.911834 13354 net.cpp:173] Top shape: 300 36 6 6 (388800)
+I0504 08:48:02.911837 13354 net.cpp:181] Memory required for data: 71540404
+I0504 08:48:02.911840 13354 layer_factory.hpp:77] Creating layer fc_10_single
+I0504 08:48:02.911846 13354 net.cpp:116] Creating Layer fc_10_single
+I0504 08:48:02.911850 13354 net.cpp:450] fc_10_single <- conv2_single
+I0504 08:48:02.911855 13354 net.cpp:424] fc_10_single -> fc_10_single
+I0504 08:48:02.912001 13354 net.cpp:166] Setting up fc_10_single
+I0504 08:48:02.912009 13354 net.cpp:173] Top shape: 300 10 (3000)
+I0504 08:48:02.912012 13354 net.cpp:181] Memory required for data: 71552404
+I0504 08:48:02.912017 13354 layer_factory.hpp:77] Creating layer loss_single
+I0504 08:48:02.912022 13354 net.cpp:116] Creating Layer loss_single
+I0504 08:48:02.912025 13354 net.cpp:450] loss_single <- fc_10_single
+I0504 08:48:02.912029 13354 net.cpp:450] loss_single <- label_data_1_split_1
+I0504 08:48:02.912034 13354 net.cpp:424] loss_single -> loss_single
+I0504 08:48:02.912040 13354 layer_factory.hpp:77] Creating layer loss_single
+I0504 08:48:02.913087 13354 net.cpp:166] Setting up loss_single
+I0504 08:48:02.913100 13354 net.cpp:173] Top shape: (1)
+I0504 08:48:02.913102 13354 net.cpp:176]     with loss weight 1
+I0504 08:48:02.913108 13354 net.cpp:181] Memory required for data: 71552408
+I0504 08:48:02.913111 13354 net.cpp:242] loss_single needs backward computation.
+I0504 08:48:02.913115 13354 net.cpp:242] fc_10_single needs backward computation.
+I0504 08:48:02.913118 13354 net.cpp:242] relu/conv2_single needs backward computation.
+I0504 08:48:02.913120 13354 net.cpp:242] conv2_single needs backward computation.
+I0504 08:48:02.913123 13354 net.cpp:242] relu/conv1_single needs backward computation.
+I0504 08:48:02.913125 13354 net.cpp:242] conv1_single needs backward computation.
+I0504 08:48:02.913128 13354 net.cpp:242] loss_dual needs backward computation.
+I0504 08:48:02.913131 13354 net.cpp:242] fc_10_dual needs backward computation.
+I0504 08:48:02.913134 13354 net.cpp:242] fc_10_rhs_dual needs backward computation.
+I0504 08:48:02.913147 13354 net.cpp:242] fc_10_lhs_dual needs backward computation.
+I0504 08:48:02.913151 13354 net.cpp:242] relu/conv2_rhs_dual needs backward computation.
+I0504 08:48:02.913153 13354 net.cpp:242] conv2_rhs_dual needs backward computation.
+I0504 08:48:02.913156 13354 net.cpp:242] relu/conv2_lhs_dual needs backward computation.
+I0504 08:48:02.913158 13354 net.cpp:242] conv2_lhs_dual needs backward computation.
+I0504 08:48:02.913161 13354 net.cpp:242] relu/conv1_minus_dual needs backward computation.
+I0504 08:48:02.913164 13354 net.cpp:242] conv1_minus_dual needs backward computation.
+I0504 08:48:02.913167 13354 net.cpp:242] relu/conv1_dual needs backward computation.
+I0504 08:48:02.913170 13354 net.cpp:242] conv1_dual_conv1_dual_0_split needs backward computation.
+I0504 08:48:02.913172 13354 net.cpp:242] conv1_dual needs backward computation.
+I0504 08:48:02.913177 13354 net.cpp:244] data_data_scaling_0_split does not need backward computation.
+I0504 08:48:02.913179 13354 net.cpp:244] data_scaling does not need backward computation.
+I0504 08:48:02.913182 13354 net.cpp:244] label_data_1_split does not need backward computation.
+I0504 08:48:02.913185 13354 net.cpp:244] data does not need backward computation.
+I0504 08:48:02.913188 13354 net.cpp:286] This network produces output loss_dual
+I0504 08:48:02.913192 13354 net.cpp:286] This network produces output loss_single
+I0504 08:48:02.914134 13354 net.cpp:299] Network initialization done.
+I0504 08:48:02.914616 13354 solver.cpp:181] Creating test net (#0) specified by net file: train_val_inv_1.prototxt
+I0504 08:48:02.914651 13354 net.cpp:338] The NetState phase (1) differed from the phase (0) specified by a rule in layer data
+I0504 08:48:02.914664 13354 net.cpp:338] The NetState phase (1) differed from the phase (0) specified by a rule in layer loss_dual
+I0504 08:48:02.914670 13354 net.cpp:338] The NetState phase (1) differed from the phase (0) specified by a rule in layer loss_single
+I0504 08:48:02.914841 13354 net.cpp:74] Initializing net from parameters: 
+name: "MNIST_NET"
+state {
+  phase: TEST
+}
+layer {
+  name: "data"
+  type: "ImageData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TEST
+  }
+  image_data_param {
+    source: "test.txt"
+    batch_size: 100
+    crop_size: 27
+    shuffle: true
+    is_color: false
+  }
+}
+layer {
+  name: "data_scaling"
+  type: "Power"
+  bottom: "data"
+  top: "data"
+  power_param {
+    power: 1
+    scale: 0.0078125
+    shift: -1
+  }
+}
+layer {
+  name: "conv1_dual"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1_dual"
+  param {
+    name: "conv1_w_dual"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    name: "conv1_b_dual"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu/conv1_dual"
+  type: "ReLU"
+  bottom: "conv1_dual"
+  top: "relu/conv1_dual"
+}
+layer {
+  name: "conv1_minus_dual"
+  type: "Power"
+  bottom: "conv1_dual"
+  top: "conv1_minus_dual"
+  power_param {
+    power: 1
+    scale: -1
+    shift: 0
+  }
+}
+layer {
+  name: "relu/conv1_minus_dual"
+  type: "ReLU"
+  bottom: "conv1_minus_dual"
+  top: "relu/conv1_minus_dual"
+}
+layer {
+  name: "conv2_lhs_dual"
+  type: "Convolution"
+  bottom: "relu/conv1_minus_dual"
+  top: "conv2_lhs_dual"
+  param {
+    name: "conv2_w_dual"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    name: "conv2_b_dual"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu/conv2_lhs_dual"
+  type: "ReLU"
+  bottom: "conv2_lhs_dual"
+  top: "conv2_lhs_dual"
+}
+layer {
+  name: "conv2_rhs_dual"
+  type: "Convolution"
+  bottom: "relu/conv1_dual"
+  top: "conv2_rhs_dual"
+  param {
+    name: "conv2_w_dual"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    name: "conv2_b_dual"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu/conv2_rhs_dual"
+  type: "ReLU"
+  bottom: "conv2_rhs_dual"
+  top: "conv2_rhs_dual"
+}
+layer {
+  name: "fc_10_lhs_dual"
+  type: "InnerProduct"
+  bottom: "conv2_lhs_dual"
+  top: "fc_10_lhs_dual"
+  param {
+    name: "fc_10_w_0_dual"
+    lr_mult: 5
+    decay_mult: 1
+  }
+  param {
+    name: "fc_10_b_0_dual"
+    lr_mult: 10
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "fc_10_rhs_dual"
+  type: "InnerProduct"
+  bottom: "conv2_rhs_dual"
+  top: "fc_10_rhs_dual"
+  param {
+    name: "fc_10_w_1_dual"
+    lr_mult: 5
+    decay_mult: 1
+  }
+  param {
+    name: "fc_10_b_1_dual"
+    lr_mult: 10
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "fc_10_dual"
+  type: "Eltwise"
+  bottom: "fc_10_rhs_dual"
+  bottom: "fc_10_lhs_dual"
+  top: "fc_10_dual"
+  eltwise_param {
+    operation: SUM
+    coeff: 1
+    coeff: 1
+  }
+}
+layer {
+  name: "accuracy_dual"
+  type: "Accuracy"
+  bottom: "fc_10_dual"
+  bottom: "label"
+  top: "accuracy_dual"
+  include {
+    phase: TEST
+  }
+}
+layer {
+  name: "conv1_single"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1_single"
+  param {
+    name: "conv1_w_single"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    name: "conv1_b_single"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu/conv1_single"
+  type: "ReLU"
+  bottom: "conv1_single"
+  top: "relu/conv1_single"
+}
+layer {
+  name: "conv2_single"
+  type: "Convolution"
+  bottom: "relu/conv1_single"
+  top: "conv2_single"
+  param {
+    name: "conv2_w_single"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    name: "conv2_b_single"
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 36
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu/conv2_single"
+  type: "ReLU"
+  bottom: "conv2_single"
+  top: "conv2_single"
+}
+layer {
+  name: "fc_10_single"
+  type: "InnerProduct"
+  bottom: "conv2_single"
+  top: "fc_10_single"
+  param {
+    name: "fc_10_w_single"
+    lr_mult: 5
+    decay_mult: 1
+  }
+  param {
+    name: "fc_10_b_single"
+    lr_mult: 10
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "accuracy_single"
+  type: "Accuracy"
+  bottom: "fc_10_single"
+  bottom: "label"
+  top: "accuracy_single"
+  include {
+    phase: TEST
+  }
+}
+I0504 08:48:02.914937 13354 layer_factory.hpp:77] Creating layer data
+I0504 08:48:02.914949 13354 net.cpp:116] Creating Layer data
+I0504 08:48:02.914953 13354 net.cpp:424] data -> data
+I0504 08:48:02.914960 13354 net.cpp:424] data -> label
+I0504 08:48:02.914966 13354 image_data_layer.cpp:38] Opening file test.txt
+I0504 08:48:02.917081 13354 image_data_layer.cpp:53] Shuffling data
+I0504 08:48:02.917973 13354 image_data_layer.cpp:58] A total of 10000 images.
+I0504 08:48:02.918170 13354 image_data_layer.cpp:85] output data size: 100,1,28,28
+I0504 08:48:02.919281 13354 net.cpp:166] Setting up data
+I0504 08:48:02.919297 13354 net.cpp:173] Top shape: 100 1 28 28 (78400)
+I0504 08:48:02.919304 13354 net.cpp:173] Top shape: 100 (100)
+I0504 08:48:02.919308 13354 net.cpp:181] Memory required for data: 314000
+I0504 08:48:02.919314 13354 layer_factory.hpp:77] Creating layer label_data_1_split
+I0504 08:48:02.919328 13354 net.cpp:116] Creating Layer label_data_1_split
+I0504 08:48:02.919350 13354 net.cpp:450] label_data_1_split <- label
+I0504 08:48:02.919359 13354 net.cpp:424] label_data_1_split -> label_data_1_split_0
+I0504 08:48:02.919371 13354 net.cpp:424] label_data_1_split -> label_data_1_split_1
+I0504 08:48:02.919473 13354 net.cpp:166] Setting up label_data_1_split
+I0504 08:48:02.919489 13354 net.cpp:173] Top shape: 100 (100)
+I0504 08:48:02.919495 13354 net.cpp:173] Top shape: 100 (100)
+I0504 08:48:02.919498 13354 net.cpp:181] Memory required for data: 314800
+I0504 08:48:02.919503 13354 layer_factory.hpp:77] Creating layer data_scaling
+I0504 08:48:02.919514 13354 net.cpp:116] Creating Layer data_scaling
+I0504 08:48:02.919518 13354 net.cpp:450] data_scaling <- data
+I0504 08:48:02.919525 13354 net.cpp:411] data_scaling -> data (in-place)
+I0504 08:48:02.919534 13354 net.cpp:166] Setting up data_scaling
+I0504 08:48:02.919540 13354 net.cpp:173] Top shape: 100 1 28 28 (78400)
+I0504 08:48:02.919544 13354 net.cpp:181] Memory required for data: 628400
+I0504 08:48:02.919548 13354 layer_factory.hpp:77] Creating layer data_data_scaling_0_split
+I0504 08:48:02.919554 13354 net.cpp:116] Creating Layer data_data_scaling_0_split
+I0504 08:48:02.919559 13354 net.cpp:450] data_data_scaling_0_split <- data
+I0504 08:48:02.919564 13354 net.cpp:424] data_data_scaling_0_split -> data_data_scaling_0_split_0
+I0504 08:48:02.919574 13354 net.cpp:424] data_data_scaling_0_split -> data_data_scaling_0_split_1
+I0504 08:48:02.919622 13354 net.cpp:166] Setting up data_data_scaling_0_split
+I0504 08:48:02.919633 13354 net.cpp:173] Top shape: 100 1 28 28 (78400)
+I0504 08:48:02.919639 13354 net.cpp:173] Top shape: 100 1 28 28 (78400)
+I0504 08:48:02.919643 13354 net.cpp:181] Memory required for data: 1255600
+I0504 08:48:02.919648 13354 layer_factory.hpp:77] Creating layer conv1_dual
+I0504 08:48:02.919667 13354 net.cpp:116] Creating Layer conv1_dual
+I0504 08:48:02.919672 13354 net.cpp:450] conv1_dual <- data_data_scaling_0_split_0
+I0504 08:48:02.919682 13354 net.cpp:424] conv1_dual -> conv1_dual
+I0504 08:48:02.921381 13354 net.cpp:166] Setting up conv1_dual
+I0504 08:48:02.921396 13354 net.cpp:173] Top shape: 100 36 13 13 (608400)
+I0504 08:48:02.921399 13354 net.cpp:181] Memory required for data: 3689200
+I0504 08:48:02.921409 13354 layer_factory.hpp:77] Creating layer conv1_dual_conv1_dual_0_split
+I0504 08:48:02.921422 13354 net.cpp:116] Creating Layer conv1_dual_conv1_dual_0_split
+I0504 08:48:02.921427 13354 net.cpp:450] conv1_dual_conv1_dual_0_split <- conv1_dual
+I0504 08:48:02.921432 13354 net.cpp:424] conv1_dual_conv1_dual_0_split -> conv1_dual_conv1_dual_0_split_0
+I0504 08:48:02.921442 13354 net.cpp:424] conv1_dual_conv1_dual_0_split -> conv1_dual_conv1_dual_0_split_1
+I0504 08:48:02.921501 13354 net.cpp:166] Setting up conv1_dual_conv1_dual_0_split
+I0504 08:48:02.921514 13354 net.cpp:173] Top shape: 100 36 13 13 (608400)
+I0504 08:48:02.921519 13354 net.cpp:173] Top shape: 100 36 13 13 (608400)
+I0504 08:48:02.921524 13354 net.cpp:181] Memory required for data: 8556400
+I0504 08:48:02.921528 13354 layer_factory.hpp:77] Creating layer relu/conv1_dual
+I0504 08:48:02.921536 13354 net.cpp:116] Creating Layer relu/conv1_dual
+I0504 08:48:02.921540 13354 net.cpp:450] relu/conv1_dual <- conv1_dual_conv1_dual_0_split_0
+I0504 08:48:02.921550 13354 net.cpp:424] relu/conv1_dual -> relu/conv1_dual
+I0504 08:48:02.922389 13354 net.cpp:166] Setting up relu/conv1_dual
+I0504 08:48:02.922401 13354 net.cpp:173] Top shape: 100 36 13 13 (608400)
+I0504 08:48:02.922405 13354 net.cpp:181] Memory required for data: 10990000
+I0504 08:48:02.922407 13354 layer_factory.hpp:77] Creating layer conv1_minus_dual
+I0504 08:48:02.922413 13354 net.cpp:116] Creating Layer conv1_minus_dual
+I0504 08:48:02.922417 13354 net.cpp:450] conv1_minus_dual <- conv1_dual_conv1_dual_0_split_1
+I0504 08:48:02.922423 13354 net.cpp:424] conv1_minus_dual -> conv1_minus_dual
+I0504 08:48:02.922458 13354 net.cpp:166] Setting up conv1_minus_dual
+I0504 08:48:02.922467 13354 net.cpp:173] Top shape: 100 36 13 13 (608400)
+I0504 08:48:02.922472 13354 net.cpp:181] Memory required for data: 13423600
+I0504 08:48:02.922498 13354 layer_factory.hpp:77] Creating layer relu/conv1_minus_dual
+I0504 08:48:02.922514 13354 net.cpp:116] Creating Layer relu/conv1_minus_dual
+I0504 08:48:02.922519 13354 net.cpp:450] relu/conv1_minus_dual <- conv1_minus_dual
+I0504 08:48:02.922528 13354 net.cpp:424] relu/conv1_minus_dual -> relu/conv1_minus_dual
+I0504 08:48:02.923552 13354 net.cpp:166] Setting up relu/conv1_minus_dual
+I0504 08:48:02.923573 13354 net.cpp:173] Top shape: 100 36 13 13 (608400)
+I0504 08:48:02.923575 13354 net.cpp:181] Memory required for data: 15857200
+I0504 08:48:02.923578 13354 layer_factory.hpp:77] Creating layer conv2_lhs_dual
+I0504 08:48:02.923589 13354 net.cpp:116] Creating Layer conv2_lhs_dual
+I0504 08:48:02.923593 13354 net.cpp:450] conv2_lhs_dual <- relu/conv1_minus_dual
+I0504 08:48:02.923601 13354 net.cpp:424] conv2_lhs_dual -> conv2_lhs_dual
+I0504 08:48:02.927037 13354 net.cpp:166] Setting up conv2_lhs_dual
+I0504 08:48:02.927049 13354 net.cpp:173] Top shape: 100 36 6 6 (129600)
+I0504 08:48:02.927052 13354 net.cpp:181] Memory required for data: 16375600
+I0504 08:48:02.927060 13354 layer_factory.hpp:77] Creating layer relu/conv2_lhs_dual
+I0504 08:48:02.927065 13354 net.cpp:116] Creating Layer relu/conv2_lhs_dual
+I0504 08:48:02.927068 13354 net.cpp:450] relu/conv2_lhs_dual <- conv2_lhs_dual
+I0504 08:48:02.927073 13354 net.cpp:411] relu/conv2_lhs_dual -> conv2_lhs_dual (in-place)
+I0504 08:48:02.928043 13354 net.cpp:166] Setting up relu/conv2_lhs_dual
+I0504 08:48:02.928055 13354 net.cpp:173] Top shape: 100 36 6 6 (129600)
+I0504 08:48:02.928056 13354 net.cpp:181] Memory required for data: 16894000
+I0504 08:48:02.928059 13354 layer_factory.hpp:77] Creating layer conv2_rhs_dual
+I0504 08:48:02.928069 13354 net.cpp:116] Creating Layer conv2_rhs_dual
+I0504 08:48:02.928072 13354 net.cpp:450] conv2_rhs_dual <- relu/conv1_dual
+I0504 08:48:02.928079 13354 net.cpp:424] conv2_rhs_dual -> conv2_rhs_dual
+I0504 08:48:02.931551 13354 net.cpp:166] Setting up conv2_rhs_dual
+I0504 08:48:02.931565 13354 net.cpp:173] Top shape: 100 36 6 6 (129600)
+I0504 08:48:02.931567 13354 net.cpp:181] Memory required for data: 17412400
+I0504 08:48:02.931572 13354 net.cpp:509] Sharing parameters 'conv2_w_dual' owned by layer 'conv2_lhs_dual', param index 0
+I0504 08:48:02.931576 13354 net.cpp:509] Sharing parameters 'conv2_b_dual' owned by layer 'conv2_lhs_dual', param index 1
+I0504 08:48:02.931579 13354 layer_factory.hpp:77] Creating layer relu/conv2_rhs_dual
+I0504 08:48:02.931589 13354 net.cpp:116] Creating Layer relu/conv2_rhs_dual
+I0504 08:48:02.931594 13354 net.cpp:450] relu/conv2_rhs_dual <- conv2_rhs_dual
+I0504 08:48:02.931601 13354 net.cpp:411] relu/conv2_rhs_dual -> conv2_rhs_dual (in-place)
+I0504 08:48:02.932602 13354 net.cpp:166] Setting up relu/conv2_rhs_dual
+I0504 08:48:02.932612 13354 net.cpp:173] Top shape: 100 36 6 6 (129600)
+I0504 08:48:02.932615 13354 net.cpp:181] Memory required for data: 17930800
+I0504 08:48:02.932618 13354 layer_factory.hpp:77] Creating layer fc_10_lhs_dual
+I0504 08:48:02.932627 13354 net.cpp:116] Creating Layer fc_10_lhs_dual
+I0504 08:48:02.932631 13354 net.cpp:450] fc_10_lhs_dual <- conv2_lhs_dual
+I0504 08:48:02.932636 13354 net.cpp:424] fc_10_lhs_dual -> fc_10_lhs_dual
+I0504 08:48:02.932901 13354 net.cpp:166] Setting up fc_10_lhs_dual
+I0504 08:48:02.932915 13354 net.cpp:173] Top shape: 100 10 (1000)
+I0504 08:48:02.932919 13354 net.cpp:181] Memory required for data: 17934800
+I0504 08:48:02.932929 13354 layer_factory.hpp:77] Creating layer fc_10_rhs_dual
+I0504 08:48:02.932937 13354 net.cpp:116] Creating Layer fc_10_rhs_dual
+I0504 08:48:02.932941 13354 net.cpp:450] fc_10_rhs_dual <- conv2_rhs_dual
+I0504 08:48:02.932951 13354 net.cpp:424] fc_10_rhs_dual -> fc_10_rhs_dual
+I0504 08:48:02.933204 13354 net.cpp:166] Setting up fc_10_rhs_dual
+I0504 08:48:02.933218 13354 net.cpp:173] Top shape: 100 10 (1000)
+I0504 08:48:02.933221 13354 net.cpp:181] Memory required for data: 17938800
+I0504 08:48:02.933231 13354 layer_factory.hpp:77] Creating layer fc_10_dual
+I0504 08:48:02.933239 13354 net.cpp:116] Creating Layer fc_10_dual
+I0504 08:48:02.933259 13354 net.cpp:450] fc_10_dual <- fc_10_rhs_dual
+I0504 08:48:02.933264 13354 net.cpp:450] fc_10_dual <- fc_10_lhs_dual
+I0504 08:48:02.933271 13354 net.cpp:424] fc_10_dual -> fc_10_dual
+I0504 08:48:02.933311 13354 net.cpp:166] Setting up fc_10_dual
+I0504 08:48:02.933324 13354 net.cpp:173] Top shape: 100 10 (1000)
+I0504 08:48:02.933328 13354 net.cpp:181] Memory required for data: 17942800
+I0504 08:48:02.933333 13354 layer_factory.hpp:77] Creating layer accuracy_dual
+I0504 08:48:02.933346 13354 net.cpp:116] Creating Layer accuracy_dual
+I0504 08:48:02.933349 13354 net.cpp:450] accuracy_dual <- fc_10_dual
+I0504 08:48:02.933356 13354 net.cpp:450] accuracy_dual <- label_data_1_split_0
+I0504 08:48:02.933362 13354 net.cpp:424] accuracy_dual -> accuracy_dual
+I0504 08:48:02.933372 13354 net.cpp:166] Setting up accuracy_dual
+I0504 08:48:02.933378 13354 net.cpp:173] Top shape: (1)
+I0504 08:48:02.933382 13354 net.cpp:181] Memory required for data: 17942804
+I0504 08:48:02.933387 13354 layer_factory.hpp:77] Creating layer conv1_single
+I0504 08:48:02.933400 13354 net.cpp:116] Creating Layer conv1_single
+I0504 08:48:02.933404 13354 net.cpp:450] conv1_single <- data_data_scaling_0_split_1
+I0504 08:48:02.933413 13354 net.cpp:424] conv1_single -> conv1_single
+I0504 08:48:02.936097 13354 net.cpp:166] Setting up conv1_single
+I0504 08:48:02.936110 13354 net.cpp:173] Top shape: 100 36 13 13 (608400)
+I0504 08:48:02.936112 13354 net.cpp:181] Memory required for data: 20376404
+I0504 08:48:02.936118 13354 layer_factory.hpp:77] Creating layer relu/conv1_single
+I0504 08:48:02.936125 13354 net.cpp:116] Creating Layer relu/conv1_single
+I0504 08:48:02.936128 13354 net.cpp:450] relu/conv1_single <- conv1_single
+I0504 08:48:02.936132 13354 net.cpp:424] relu/conv1_single -> relu/conv1_single
+I0504 08:48:02.937207 13354 net.cpp:166] Setting up relu/conv1_single
+I0504 08:48:02.937219 13354 net.cpp:173] Top shape: 100 36 13 13 (608400)
+I0504 08:48:02.937222 13354 net.cpp:181] Memory required for data: 22810004
+I0504 08:48:02.937225 13354 layer_factory.hpp:77] Creating layer conv2_single
+I0504 08:48:02.937235 13354 net.cpp:116] Creating Layer conv2_single
+I0504 08:48:02.937238 13354 net.cpp:450] conv2_single <- relu/conv1_single
+I0504 08:48:02.937244 13354 net.cpp:424] conv2_single -> conv2_single
+I0504 08:48:02.939821 13354 net.cpp:166] Setting up conv2_single
+I0504 08:48:02.939836 13354 net.cpp:173] Top shape: 100 36 6 6 (129600)
+I0504 08:48:02.939841 13354 net.cpp:181] Memory required for data: 23328404
+I0504 08:48:02.939848 13354 layer_factory.hpp:77] Creating layer relu/conv2_single
+I0504 08:48:02.939858 13354 net.cpp:116] Creating Layer relu/conv2_single
+I0504 08:48:02.939863 13354 net.cpp:450] relu/conv2_single <- conv2_single
+I0504 08:48:02.939872 13354 net.cpp:411] relu/conv2_single -> conv2_single (in-place)
+I0504 08:48:02.940096 13354 net.cpp:166] Setting up relu/conv2_single
+I0504 08:48:02.940136 13354 net.cpp:173] Top shape: 100 36 6 6 (129600)
+I0504 08:48:02.940157 13354 net.cpp:181] Memory required for data: 23846804
+I0504 08:48:02.940179 13354 layer_factory.hpp:77] Creating layer fc_10_single
+I0504 08:48:02.940209 13354 net.cpp:116] Creating Layer fc_10_single
+I0504 08:48:02.940230 13354 net.cpp:450] fc_10_single <- conv2_single
+I0504 08:48:02.940254 13354 net.cpp:424] fc_10_single -> fc_10_single
+I0504 08:48:02.940541 13354 net.cpp:166] Setting up fc_10_single
+I0504 08:48:02.940574 13354 net.cpp:173] Top shape: 100 10 (1000)
+I0504 08:48:02.940598 13354 net.cpp:181] Memory required for data: 23850804
+I0504 08:48:02.940624 13354 layer_factory.hpp:77] Creating layer accuracy_single
+I0504 08:48:02.940649 13354 net.cpp:116] Creating Layer accuracy_single
+I0504 08:48:02.940656 13354 net.cpp:450] accuracy_single <- fc_10_single
+I0504 08:48:02.940662 13354 net.cpp:450] accuracy_single <- label_data_1_split_1
+I0504 08:48:02.940671 13354 net.cpp:424] accuracy_single -> accuracy_single
+I0504 08:48:02.940683 13354 net.cpp:166] Setting up accuracy_single
+I0504 08:48:02.940690 13354 net.cpp:173] Top shape: (1)
+I0504 08:48:02.940696 13354 net.cpp:181] Memory required for data: 23850808
+I0504 08:48:02.940713 13354 net.cpp:244] accuracy_single does not need backward computation.
+I0504 08:48:02.940719 13354 net.cpp:244] fc_10_single does not need backward computation.
+I0504 08:48:02.940723 13354 net.cpp:244] relu/conv2_single does not need backward computation.
+I0504 08:48:02.940727 13354 net.cpp:244] conv2_single does not need backward computation.
+I0504 08:48:02.940732 13354 net.cpp:244] relu/conv1_single does not need backward computation.
+I0504 08:48:02.940735 13354 net.cpp:244] conv1_single does not need backward computation.
+I0504 08:48:02.940739 13354 net.cpp:244] accuracy_dual does not need backward computation.
+I0504 08:48:02.940744 13354 net.cpp:244] fc_10_dual does not need backward computation.
+I0504 08:48:02.940749 13354 net.cpp:244] fc_10_rhs_dual does not need backward computation.
+I0504 08:48:02.940753 13354 net.cpp:244] fc_10_lhs_dual does not need backward computation.
+I0504 08:48:02.940757 13354 net.cpp:244] relu/conv2_rhs_dual does not need backward computation.
+I0504 08:48:02.940762 13354 net.cpp:244] conv2_rhs_dual does not need backward computation.
+I0504 08:48:02.940767 13354 net.cpp:244] relu/conv2_lhs_dual does not need backward computation.
+I0504 08:48:02.940770 13354 net.cpp:244] conv2_lhs_dual does not need backward computation.
+I0504 08:48:02.940774 13354 net.cpp:244] relu/conv1_minus_dual does not need backward computation.
+I0504 08:48:02.940779 13354 net.cpp:244] conv1_minus_dual does not need backward computation.
+I0504 08:48:02.940783 13354 net.cpp:244] relu/conv1_dual does not need backward computation.
+I0504 08:48:02.940788 13354 net.cpp:244] conv1_dual_conv1_dual_0_split does not need backward computation.
+I0504 08:48:02.940793 13354 net.cpp:244] conv1_dual does not need backward computation.
+I0504 08:48:02.940796 13354 net.cpp:244] data_data_scaling_0_split does not need backward computation.
+I0504 08:48:02.940800 13354 net.cpp:244] data_scaling does not need backward computation.
+I0504 08:48:02.940805 13354 net.cpp:244] label_data_1_split does not need backward computation.
+I0504 08:48:02.940809 13354 net.cpp:244] data does not need backward computation.
+I0504 08:48:02.940814 13354 net.cpp:286] This network produces output accuracy_dual
+I0504 08:48:02.940817 13354 net.cpp:286] This network produces output accuracy_single
+I0504 08:48:02.940887 13354 net.cpp:299] Network initialization done.
+I0504 08:48:02.941015 13354 solver.cpp:60] Solver scaffolding done.
+I0504 08:48:02.941644 13354 caffe.cpp:251] Starting Optimization
+I0504 08:48:02.941658 13354 solver.cpp:279] Solving MNIST_NET
+I0504 08:48:02.941663 13354 solver.cpp:280] Learning Rate Policy: step
+I0504 08:48:02.942087 13354 solver.cpp:337] Iteration 0, Testing net (#0)
+I0504 08:48:02.942250 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:48:02.942355 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:48:03.076864 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:48:03.289958 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.1144
+I0504 08:48:03.289994 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.0788
+I0504 08:48:03.297889 13354 solver.cpp:228] Iteration 0, loss = 4.97287
+I0504 08:48:03.297925 13354 solver.cpp:244]     Train net output #0: loss_dual = 2.6454 (* 1 = 2.6454 loss)
+I0504 08:48:03.297942 13354 solver.cpp:244]     Train net output #1: loss_single = 2.32747 (* 1 = 2.32747 loss)
+I0504 08:48:03.297962 13354 sgd_solver.cpp:106] Iteration 0, lr = 0.01
+I0504 08:48:12.247867 13354 solver.cpp:228] Iteration 1000, loss = 0.152717
+I0504 08:48:12.247901 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0549468 (* 1 = 0.0549468 loss)
+I0504 08:48:12.247908 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0563386 (* 1 = 0.0563386 loss)
+I0504 08:48:12.247913 13354 sgd_solver.cpp:106] Iteration 1000, lr = 0.01
+I0504 08:48:21.597070 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:48:23.181828 13354 solver.cpp:228] Iteration 2000, loss = 0.0987414
+I0504 08:48:23.181890 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.061747 (* 1 = 0.061747 loss)
+I0504 08:48:23.181897 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0777956 (* 1 = 0.0777956 loss)
+I0504 08:48:23.181905 13354 sgd_solver.cpp:106] Iteration 2000, lr = 0.01
+I0504 08:48:34.509065 13354 solver.cpp:228] Iteration 3000, loss = 0.0750538
+I0504 08:48:34.509130 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0339126 (* 1 = 0.0339126 loss)
+I0504 08:48:34.509136 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0295986 (* 1 = 0.0295986 loss)
+I0504 08:48:34.509141 13354 sgd_solver.cpp:106] Iteration 3000, lr = 0.01
+I0504 08:48:45.747577 13354 solver.cpp:228] Iteration 4000, loss = 0.0638747
+I0504 08:48:45.747615 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.054895 (* 1 = 0.054895 loss)
+I0504 08:48:45.747625 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0668974 (* 1 = 0.0668974 loss)
+I0504 08:48:45.747632 13354 sgd_solver.cpp:106] Iteration 4000, lr = 0.01
+I0504 08:48:52.165452 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:48:55.290146 13354 solver.cpp:337] Iteration 5000, Testing net (#0)
+I0504 08:48:55.290241 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:48:55.290266 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:48:55.675285 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9864
+I0504 08:48:55.675318 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9845
+I0504 08:48:55.677688 13354 solver.cpp:228] Iteration 5000, loss = 0.0561903
+I0504 08:48:55.677714 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.02236 (* 1 = 0.02236 loss)
+I0504 08:48:55.677731 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0305942 (* 1 = 0.0305942 loss)
+I0504 08:48:55.677752 13354 sgd_solver.cpp:106] Iteration 5000, lr = 0.01
+I0504 08:49:06.897748 13354 solver.cpp:228] Iteration 6000, loss = 0.0539468
+I0504 08:49:06.897845 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00651225 (* 1 = 0.00651225 loss)
+I0504 08:49:06.897855 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0139992 (* 1 = 0.0139992 loss)
+I0504 08:49:06.897864 13354 sgd_solver.cpp:106] Iteration 6000, lr = 0.01
+I0504 08:49:12.197149 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:49:18.110410 13354 solver.cpp:228] Iteration 7000, loss = 0.0519651
+I0504 08:49:18.110445 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0100576 (* 1 = 0.0100576 loss)
+I0504 08:49:18.110453 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0163537 (* 1 = 0.0163537 loss)
+I0504 08:49:18.110461 13354 sgd_solver.cpp:106] Iteration 7000, lr = 0.01
+I0504 08:49:28.073990 13354 solver.cpp:228] Iteration 8000, loss = 0.0448123
+I0504 08:49:28.074031 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.011505 (* 1 = 0.011505 loss)
+I0504 08:49:28.074040 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0128902 (* 1 = 0.0128902 loss)
+I0504 08:49:28.074049 13354 sgd_solver.cpp:106] Iteration 8000, lr = 0.01
+I0504 08:49:30.431465 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:49:38.546684 13354 solver.cpp:228] Iteration 9000, loss = 0.0344158
+I0504 08:49:38.546748 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0100855 (* 1 = 0.0100855 loss)
+I0504 08:49:38.546759 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0207778 (* 1 = 0.0207778 loss)
+I0504 08:49:38.546767 13354 sgd_solver.cpp:106] Iteration 9000, lr = 0.01
+I0504 08:49:49.579725 13354 solver.cpp:337] Iteration 10000, Testing net (#0)
+I0504 08:49:49.579754 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:49:49.579761 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:49:49.994825 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9874
+I0504 08:49:49.994943 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9858
+I0504 08:49:49.997473 13354 solver.cpp:228] Iteration 10000, loss = 0.0304906
+I0504 08:49:49.997511 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0133919 (* 1 = 0.0133919 loss)
+I0504 08:49:49.997520 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0170098 (* 1 = 0.0170098 loss)
+I0504 08:49:49.997529 13354 sgd_solver.cpp:106] Iteration 10000, lr = 0.005
+I0504 08:49:58.837072 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:50:00.337343 13354 solver.cpp:228] Iteration 11000, loss = 0.0298178
+I0504 08:50:00.337371 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00749069 (* 1 = 0.00749069 loss)
+I0504 08:50:00.337378 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0128517 (* 1 = 0.0128517 loss)
+I0504 08:50:00.337381 13354 sgd_solver.cpp:106] Iteration 11000, lr = 0.005
+I0504 08:50:06.046092 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:50:07.379554 13354 solver.cpp:228] Iteration 12000, loss = 0.0223087
+I0504 08:50:07.379586 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0101748 (* 1 = 0.0101748 loss)
+I0504 08:50:07.379593 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0206425 (* 1 = 0.0206425 loss)
+I0504 08:50:07.379598 13354 sgd_solver.cpp:106] Iteration 12000, lr = 0.005
+I0504 08:50:13.156416 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:50:14.500056 13354 solver.cpp:228] Iteration 13000, loss = 0.0218877
+I0504 08:50:14.500099 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00799827 (* 1 = 0.00799827 loss)
+I0504 08:50:14.500109 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0152441 (* 1 = 0.0152441 loss)
+I0504 08:50:14.500115 13354 sgd_solver.cpp:106] Iteration 13000, lr = 0.005
+I0504 08:50:20.292202 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:50:21.633268 13354 solver.cpp:228] Iteration 14000, loss = 0.0253894
+I0504 08:50:21.633296 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00548859 (* 1 = 0.00548859 loss)
+I0504 08:50:21.633302 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00811505 (* 1 = 0.00811505 loss)
+I0504 08:50:21.633306 13354 sgd_solver.cpp:106] Iteration 14000, lr = 0.005
+I0504 08:50:27.359702 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:50:28.687561 13354 solver.cpp:337] Iteration 15000, Testing net (#0)
+I0504 08:50:28.687583 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:50:28.687588 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:50:29.100960 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.987101
+I0504 08:50:29.100994 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9855
+I0504 08:50:29.103507 13354 solver.cpp:228] Iteration 15000, loss = 0.0219651
+I0504 08:50:29.103534 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00841467 (* 1 = 0.00841467 loss)
+I0504 08:50:29.103544 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0100712 (* 1 = 0.0100712 loss)
+I0504 08:50:29.103552 13354 sgd_solver.cpp:106] Iteration 15000, lr = 0.005
+I0504 08:50:34.381109 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:50:36.403746 13354 solver.cpp:228] Iteration 16000, loss = 0.0187035
+I0504 08:50:36.403784 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00741065 (* 1 = 0.00741065 loss)
+I0504 08:50:36.403794 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0107876 (* 1 = 0.0107876 loss)
+I0504 08:50:36.403800 13354 sgd_solver.cpp:106] Iteration 16000, lr = 0.005
+I0504 08:50:41.522159 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:50:43.549247 13354 solver.cpp:228] Iteration 17000, loss = 0.020037
+I0504 08:50:43.549360 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00428523 (* 1 = 0.00428523 loss)
+I0504 08:50:43.549371 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00560461 (* 1 = 0.00560461 loss)
+I0504 08:50:43.549376 13354 sgd_solver.cpp:106] Iteration 17000, lr = 0.005
+I0504 08:50:48.628021 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:50:50.642925 13354 solver.cpp:228] Iteration 18000, loss = 0.018854
+I0504 08:50:50.642976 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0097587 (* 1 = 0.0097587 loss)
+I0504 08:50:50.642992 13354 solver.cpp:244]     Train net output #1: loss_single = 0.014585 (* 1 = 0.014585 loss)
+I0504 08:50:50.643002 13354 sgd_solver.cpp:106] Iteration 18000, lr = 0.005
+I0504 08:50:55.742560 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:50:57.764045 13354 solver.cpp:228] Iteration 19000, loss = 0.0198757
+I0504 08:50:57.764086 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00304681 (* 1 = 0.00304681 loss)
+I0504 08:50:57.764094 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00359224 (* 1 = 0.00359224 loss)
+I0504 08:50:57.764101 13354 sgd_solver.cpp:106] Iteration 19000, lr = 0.005
+I0504 08:51:02.850258 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:51:04.846315 13354 solver.cpp:337] Iteration 20000, Testing net (#0)
+I0504 08:51:04.846338 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:51:04.846343 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:51:05.099815 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9875
+I0504 08:51:05.099845 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9855
+I0504 08:51:05.102110 13354 solver.cpp:228] Iteration 20000, loss = 0.0172499
+I0504 08:51:05.102129 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00626334 (* 1 = 0.00626334 loss)
+I0504 08:51:05.102135 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00866739 (* 1 = 0.00866739 loss)
+I0504 08:51:05.102141 13354 sgd_solver.cpp:106] Iteration 20000, lr = 0.0025
+I0504 08:51:09.633596 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:51:12.316817 13354 solver.cpp:228] Iteration 21000, loss = 0.0163221
+I0504 08:51:12.316864 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00538778 (* 1 = 0.00538778 loss)
+I0504 08:51:12.316877 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00802254 (* 1 = 0.00802254 loss)
+I0504 08:51:12.316885 13354 sgd_solver.cpp:106] Iteration 21000, lr = 0.0025
+I0504 08:51:16.765472 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:51:19.485172 13354 solver.cpp:228] Iteration 22000, loss = 0.0152654
+I0504 08:51:19.485210 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00490377 (* 1 = 0.00490377 loss)
+I0504 08:51:19.485224 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00882112 (* 1 = 0.00882112 loss)
+I0504 08:51:19.485232 13354 sgd_solver.cpp:106] Iteration 22000, lr = 0.0025
+I0504 08:51:23.882127 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:51:26.539538 13354 solver.cpp:228] Iteration 23000, loss = 0.0181537
+I0504 08:51:26.539575 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00467813 (* 1 = 0.00467813 loss)
+I0504 08:51:26.539587 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00694291 (* 1 = 0.00694291 loss)
+I0504 08:51:26.539592 13354 sgd_solver.cpp:106] Iteration 23000, lr = 0.0025
+I0504 08:51:30.949982 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:51:33.606484 13354 solver.cpp:228] Iteration 24000, loss = 0.0162661
+I0504 08:51:33.606523 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00681397 (* 1 = 0.00681397 loss)
+I0504 08:51:33.606531 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00864204 (* 1 = 0.00864204 loss)
+I0504 08:51:33.606539 13354 sgd_solver.cpp:106] Iteration 24000, lr = 0.0025
+I0504 08:51:37.976651 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:51:40.633534 13354 solver.cpp:337] Iteration 25000, Testing net (#0)
+I0504 08:51:40.633564 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:51:40.633574 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:51:40.961953 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9877
+I0504 08:51:40.961984 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9853
+I0504 08:51:40.964349 13354 solver.cpp:228] Iteration 25000, loss = 0.0131714
+I0504 08:51:40.964373 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00620658 (* 1 = 0.00620658 loss)
+I0504 08:51:40.964386 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00870753 (* 1 = 0.00870753 loss)
+I0504 08:51:40.964398 13354 sgd_solver.cpp:106] Iteration 25000, lr = 0.0025
+I0504 08:51:44.757791 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:51:48.065536 13354 solver.cpp:228] Iteration 26000, loss = 0.0165399
+I0504 08:51:48.065672 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0037486 (* 1 = 0.0037486 loss)
+I0504 08:51:48.065681 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00542732 (* 1 = 0.00542732 loss)
+I0504 08:51:48.065685 13354 sgd_solver.cpp:106] Iteration 26000, lr = 0.0025
+I0504 08:51:51.802736 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:51:55.103039 13354 solver.cpp:228] Iteration 27000, loss = 0.0140869
+I0504 08:51:55.103078 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00210446 (* 1 = 0.00210446 loss)
+I0504 08:51:55.103090 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00283738 (* 1 = 0.00283738 loss)
+I0504 08:51:55.103097 13354 sgd_solver.cpp:106] Iteration 27000, lr = 0.0025
+I0504 08:51:58.822351 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:52:02.123381 13354 solver.cpp:228] Iteration 28000, loss = 0.0143484
+I0504 08:52:02.123409 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00608074 (* 1 = 0.00608074 loss)
+I0504 08:52:02.123416 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0081677 (* 1 = 0.0081677 loss)
+I0504 08:52:02.123421 13354 sgd_solver.cpp:106] Iteration 28000, lr = 0.0025
+I0504 08:52:05.850746 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:52:09.168786 13354 solver.cpp:228] Iteration 29000, loss = 0.013157
+I0504 08:52:09.168822 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00495743 (* 1 = 0.00495743 loss)
+I0504 08:52:09.168831 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00753425 (* 1 = 0.00753425 loss)
+I0504 08:52:09.168838 13354 sgd_solver.cpp:106] Iteration 29000, lr = 0.0025
+I0504 08:52:12.898082 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:52:16.210106 13354 solver.cpp:337] Iteration 30000, Testing net (#0)
+I0504 08:52:16.210135 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:52:16.210144 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:52:16.531816 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9875
+I0504 08:52:16.531850 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.985
+I0504 08:52:16.534492 13354 solver.cpp:228] Iteration 30000, loss = 0.0137314
+I0504 08:52:16.534525 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00484955 (* 1 = 0.00484955 loss)
+I0504 08:52:16.534536 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00682043 (* 1 = 0.00682043 loss)
+I0504 08:52:16.534546 13354 sgd_solver.cpp:106] Iteration 30000, lr = 0.00125
+I0504 08:52:19.677776 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:52:23.637681 13354 solver.cpp:228] Iteration 31000, loss = 0.0136046
+I0504 08:52:23.637711 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00147684 (* 1 = 0.00147684 loss)
+I0504 08:52:23.637717 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00163836 (* 1 = 0.00163836 loss)
+I0504 08:52:23.637720 13354 sgd_solver.cpp:106] Iteration 31000, lr = 0.00125
+I0504 08:52:26.704936 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:52:30.674007 13354 solver.cpp:228] Iteration 32000, loss = 0.0121424
+I0504 08:52:30.674038 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00377931 (* 1 = 0.00377931 loss)
+I0504 08:52:30.674046 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00570225 (* 1 = 0.00570225 loss)
+I0504 08:52:30.674051 13354 sgd_solver.cpp:106] Iteration 32000, lr = 0.00125
+I0504 08:52:33.749258 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:52:37.727761 13354 solver.cpp:228] Iteration 33000, loss = 0.0147346
+I0504 08:52:37.727800 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00556339 (* 1 = 0.00556339 loss)
+I0504 08:52:37.727810 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00943074 (* 1 = 0.00943074 loss)
+I0504 08:52:37.727816 13354 sgd_solver.cpp:106] Iteration 33000, lr = 0.00125
+I0504 08:52:40.816426 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:52:44.785150 13354 solver.cpp:228] Iteration 34000, loss = 0.0148673
+I0504 08:52:44.785179 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00316658 (* 1 = 0.00316658 loss)
+I0504 08:52:44.785185 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00671733 (* 1 = 0.00671733 loss)
+I0504 08:52:44.785189 13354 sgd_solver.cpp:106] Iteration 34000, lr = 0.00125
+I0504 08:52:47.851835 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:52:51.806205 13354 solver.cpp:337] Iteration 35000, Testing net (#0)
+I0504 08:52:51.806344 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:52:51.806354 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:52:52.080716 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9872
+I0504 08:52:52.080757 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.984801
+I0504 08:52:52.083596 13354 solver.cpp:228] Iteration 35000, loss = 0.0128765
+I0504 08:52:52.083632 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00416094 (* 1 = 0.00416094 loss)
+I0504 08:52:52.083649 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00814369 (* 1 = 0.00814369 loss)
+I0504 08:52:52.083660 13354 sgd_solver.cpp:106] Iteration 35000, lr = 0.00125
+I0504 08:52:54.624943 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:52:59.247117 13354 solver.cpp:228] Iteration 36000, loss = 0.0135765
+I0504 08:52:59.247159 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00450481 (* 1 = 0.00450481 loss)
+I0504 08:52:59.247170 13354 solver.cpp:244]     Train net output #1: loss_single = 0.005961 (* 1 = 0.005961 loss)
+I0504 08:52:59.247177 13354 sgd_solver.cpp:106] Iteration 36000, lr = 0.00125
+I0504 08:53:01.655202 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:53:06.263794 13354 solver.cpp:228] Iteration 37000, loss = 0.0118097
+I0504 08:53:06.263833 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00342292 (* 1 = 0.00342292 loss)
+I0504 08:53:06.263844 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00706163 (* 1 = 0.00706163 loss)
+I0504 08:53:06.263850 13354 sgd_solver.cpp:106] Iteration 37000, lr = 0.00125
+I0504 08:53:08.665066 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:53:13.273942 13354 solver.cpp:228] Iteration 38000, loss = 0.0119622
+I0504 08:53:13.273970 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00310761 (* 1 = 0.00310761 loss)
+I0504 08:53:13.273975 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0042394 (* 1 = 0.0042394 loss)
+I0504 08:53:13.273980 13354 sgd_solver.cpp:106] Iteration 38000, lr = 0.00125
+I0504 08:53:15.668046 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:53:20.306870 13354 solver.cpp:228] Iteration 39000, loss = 0.0125765
+I0504 08:53:20.306911 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00571476 (* 1 = 0.00571476 loss)
+I0504 08:53:20.306921 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0066346 (* 1 = 0.0066346 loss)
+I0504 08:53:20.306929 13354 sgd_solver.cpp:106] Iteration 39000, lr = 0.00125
+I0504 08:53:22.735401 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:53:27.351299 13354 solver.cpp:337] Iteration 40000, Testing net (#0)
+I0504 08:53:27.351326 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:53:27.351333 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:53:27.667111 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9873
+I0504 08:53:27.667142 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.985
+I0504 08:53:27.669651 13354 solver.cpp:228] Iteration 40000, loss = 0.0117965
+I0504 08:53:27.669677 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00315166 (* 1 = 0.00315166 loss)
+I0504 08:53:27.669687 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00464003 (* 1 = 0.00464003 loss)
+I0504 08:53:27.669697 13354 sgd_solver.cpp:106] Iteration 40000, lr = 0.000625
+I0504 08:53:29.606142 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:53:34.848646 13354 solver.cpp:228] Iteration 41000, loss = 0.0123567
+I0504 08:53:34.848675 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00555561 (* 1 = 0.00555561 loss)
+I0504 08:53:34.848680 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00773022 (* 1 = 0.00773022 loss)
+I0504 08:53:34.848685 13354 sgd_solver.cpp:106] Iteration 41000, lr = 0.000625
+I0504 08:53:36.616797 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:53:41.879144 13354 solver.cpp:228] Iteration 42000, loss = 0.0129518
+I0504 08:53:41.879184 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00609851 (* 1 = 0.00609851 loss)
+I0504 08:53:41.879192 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00834873 (* 1 = 0.00834873 loss)
+I0504 08:53:41.879200 13354 sgd_solver.cpp:106] Iteration 42000, lr = 0.000625
+I0504 08:53:43.647285 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:53:48.916035 13354 solver.cpp:228] Iteration 43000, loss = 0.0121223
+I0504 08:53:48.916074 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00597772 (* 1 = 0.00597772 loss)
+I0504 08:53:48.916085 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00691799 (* 1 = 0.00691799 loss)
+I0504 08:53:48.916092 13354 sgd_solver.cpp:106] Iteration 43000, lr = 0.000625
+I0504 08:53:50.684833 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:53:55.944200 13354 solver.cpp:228] Iteration 44000, loss = 0.0117419
+I0504 08:53:55.944334 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00470822 (* 1 = 0.00470822 loss)
+I0504 08:53:55.944344 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00748864 (* 1 = 0.00748864 loss)
+I0504 08:53:55.944350 13354 sgd_solver.cpp:106] Iteration 44000, lr = 0.000625
+I0504 08:53:57.720156 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:54:03.149247 13354 solver.cpp:337] Iteration 45000, Testing net (#0)
+I0504 08:54:03.149288 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:54:03.149300 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:54:03.476763 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9878
+I0504 08:54:03.476799 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9854
+I0504 08:54:03.479508 13354 solver.cpp:228] Iteration 45000, loss = 0.0111193
+I0504 08:54:03.479542 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00659288 (* 1 = 0.00659288 loss)
+I0504 08:54:03.479554 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0129529 (* 1 = 0.0129529 loss)
+I0504 08:54:03.479567 13354 sgd_solver.cpp:106] Iteration 45000, lr = 0.000625
+I0504 08:54:04.629765 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:54:10.783892 13354 solver.cpp:228] Iteration 46000, loss = 0.0113706
+I0504 08:54:10.783932 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00304294 (* 1 = 0.00304294 loss)
+I0504 08:54:10.783943 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00397635 (* 1 = 0.00397635 loss)
+I0504 08:54:10.783951 13354 sgd_solver.cpp:106] Iteration 46000, lr = 0.000625
+I0504 08:54:11.917979 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:54:17.992061 13354 solver.cpp:228] Iteration 47000, loss = 0.013551
+I0504 08:54:17.992092 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00271592 (* 1 = 0.00271592 loss)
+I0504 08:54:17.992100 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0034523 (* 1 = 0.0034523 loss)
+I0504 08:54:17.992103 13354 sgd_solver.cpp:106] Iteration 47000, lr = 0.000625
+I0504 08:54:19.132279 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:54:25.138020 13354 solver.cpp:228] Iteration 48000, loss = 0.0115284
+I0504 08:54:25.138054 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00459977 (* 1 = 0.00459977 loss)
+I0504 08:54:25.138063 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0068332 (* 1 = 0.0068332 loss)
+I0504 08:54:25.138068 13354 sgd_solver.cpp:106] Iteration 48000, lr = 0.000625
+I0504 08:54:26.273241 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:54:32.364131 13354 solver.cpp:228] Iteration 49000, loss = 0.0104617
+I0504 08:54:32.364166 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00407562 (* 1 = 0.00407562 loss)
+I0504 08:54:32.364174 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0043008 (* 1 = 0.0043008 loss)
+I0504 08:54:32.364182 13354 sgd_solver.cpp:106] Iteration 49000, lr = 0.000625
+I0504 08:54:33.494261 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:54:39.440168 13354 solver.cpp:337] Iteration 50000, Testing net (#0)
+I0504 08:54:39.440191 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:54:39.440197 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:54:39.692227 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9877
+I0504 08:54:39.692251 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9855
+I0504 08:54:39.694480 13354 solver.cpp:228] Iteration 50000, loss = 0.0118335
+I0504 08:54:39.694496 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00460455 (* 1 = 0.00460455 loss)
+I0504 08:54:39.694502 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00585361 (* 1 = 0.00585361 loss)
+I0504 08:54:39.694509 13354 sgd_solver.cpp:106] Iteration 50000, lr = 0.0003125
+I0504 08:54:40.160362 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:54:46.776317 13354 solver.cpp:228] Iteration 51000, loss = 0.0124147
+I0504 08:54:46.776347 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00499624 (* 1 = 0.00499624 loss)
+I0504 08:54:46.776352 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00577115 (* 1 = 0.00577115 loss)
+I0504 08:54:46.776356 13354 sgd_solver.cpp:106] Iteration 51000, lr = 0.0003125
+I0504 08:54:47.246621 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:54:53.840100 13354 solver.cpp:228] Iteration 52000, loss = 0.0119639
+I0504 08:54:53.840136 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00695257 (* 1 = 0.00695257 loss)
+I0504 08:54:53.840144 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0122171 (* 1 = 0.0122171 loss)
+I0504 08:54:53.840152 13354 sgd_solver.cpp:106] Iteration 52000, lr = 0.0003125
+I0504 08:54:54.311447 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:55:00.892024 13354 solver.cpp:228] Iteration 53000, loss = 0.0114253
+I0504 08:55:00.892122 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00829148 (* 1 = 0.00829148 loss)
+I0504 08:55:00.892129 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0178005 (* 1 = 0.0178005 loss)
+I0504 08:55:00.892133 13354 sgd_solver.cpp:106] Iteration 53000, lr = 0.0003125
+I0504 08:55:01.362723 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:55:07.998271 13354 solver.cpp:228] Iteration 54000, loss = 0.0109855
+I0504 08:55:07.998301 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00295984 (* 1 = 0.00295984 loss)
+I0504 08:55:07.998308 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00463779 (* 1 = 0.00463779 loss)
+I0504 08:55:07.998313 13354 sgd_solver.cpp:106] Iteration 54000, lr = 0.0003125
+I0504 08:55:08.469674 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:55:15.051513 13354 solver.cpp:337] Iteration 55000, Testing net (#0)
+I0504 08:55:15.051534 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:55:15.051539 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:55:15.233881 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:55:15.302744 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9877
+I0504 08:55:15.302763 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9853
+I0504 08:55:15.305014 13354 solver.cpp:228] Iteration 55000, loss = 0.0109516
+I0504 08:55:15.305030 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00504222 (* 1 = 0.00504222 loss)
+I0504 08:55:15.305037 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0087019 (* 1 = 0.0087019 loss)
+I0504 08:55:15.305042 13354 sgd_solver.cpp:106] Iteration 55000, lr = 0.0003125
+I0504 08:55:22.186625 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:55:22.379540 13354 solver.cpp:228] Iteration 56000, loss = 0.0105534
+I0504 08:55:22.379575 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00353307 (* 1 = 0.00353307 loss)
+I0504 08:55:22.379585 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00459381 (* 1 = 0.00459381 loss)
+I0504 08:55:22.379591 13354 sgd_solver.cpp:106] Iteration 56000, lr = 0.0003125
+I0504 08:55:29.293710 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:55:29.487797 13354 solver.cpp:228] Iteration 57000, loss = 0.0135117
+I0504 08:55:29.487836 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00657609 (* 1 = 0.00657609 loss)
+I0504 08:55:29.487848 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00815644 (* 1 = 0.00815644 loss)
+I0504 08:55:29.487855 13354 sgd_solver.cpp:106] Iteration 57000, lr = 0.0003125
+I0504 08:55:36.322485 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:55:36.515589 13354 solver.cpp:228] Iteration 58000, loss = 0.0101696
+I0504 08:55:36.515619 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00315539 (* 1 = 0.00315539 loss)
+I0504 08:55:36.515627 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00450037 (* 1 = 0.00450037 loss)
+I0504 08:55:36.515635 13354 sgd_solver.cpp:106] Iteration 58000, lr = 0.0003125
+I0504 08:55:43.357553 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:55:43.551726 13354 solver.cpp:228] Iteration 59000, loss = 0.0117145
+I0504 08:55:43.551755 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00245204 (* 1 = 0.00245204 loss)
+I0504 08:55:43.551765 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00345518 (* 1 = 0.00345518 loss)
+I0504 08:55:43.551772 13354 sgd_solver.cpp:106] Iteration 59000, lr = 0.0003125
+I0504 08:55:50.392196 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:55:50.581115 13354 solver.cpp:337] Iteration 60000, Testing net (#0)
+I0504 08:55:50.581146 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:55:50.581154 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:55:50.966992 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9876
+I0504 08:55:50.967020 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9856
+I0504 08:55:50.969265 13354 solver.cpp:228] Iteration 60000, loss = 0.0122643
+I0504 08:55:50.969285 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0046713 (* 1 = 0.0046713 loss)
+I0504 08:55:50.969291 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0052109 (* 1 = 0.0052109 loss)
+I0504 08:55:50.969298 13354 sgd_solver.cpp:106] Iteration 60000, lr = 0.00015625
+I0504 08:55:57.113167 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:55:57.953402 13354 solver.cpp:228] Iteration 61000, loss = 0.0114456
+I0504 08:55:57.953431 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00422161 (* 1 = 0.00422161 loss)
+I0504 08:55:57.953438 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00713889 (* 1 = 0.00713889 loss)
+I0504 08:55:57.953441 13354 sgd_solver.cpp:106] Iteration 61000, lr = 0.00015625
+I0504 08:56:04.129261 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:56:04.975525 13354 solver.cpp:228] Iteration 62000, loss = 0.0113923
+I0504 08:56:04.975564 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0067563 (* 1 = 0.0067563 loss)
+I0504 08:56:04.975574 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00942745 (* 1 = 0.00942745 loss)
+I0504 08:56:04.975581 13354 sgd_solver.cpp:106] Iteration 62000, lr = 0.00015625
+I0504 08:56:11.151185 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:56:11.994244 13354 solver.cpp:228] Iteration 63000, loss = 0.00941797
+I0504 08:56:11.994278 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00350544 (* 1 = 0.00350544 loss)
+I0504 08:56:11.994287 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00528247 (* 1 = 0.00528247 loss)
+I0504 08:56:11.994293 13354 sgd_solver.cpp:106] Iteration 63000, lr = 0.00015625
+I0504 08:56:18.192104 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:56:19.036325 13354 solver.cpp:228] Iteration 64000, loss = 0.0112611
+I0504 08:56:19.036360 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00479242 (* 1 = 0.00479242 loss)
+I0504 08:56:19.036370 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00702141 (* 1 = 0.00702141 loss)
+I0504 08:56:19.036375 13354 sgd_solver.cpp:106] Iteration 64000, lr = 0.00015625
+I0504 08:56:25.226249 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:56:26.068341 13354 solver.cpp:337] Iteration 65000, Testing net (#0)
+I0504 08:56:26.068372 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:56:26.068377 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:56:26.410542 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9875
+I0504 08:56:26.410585 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9855
+I0504 08:56:26.413400 13354 solver.cpp:228] Iteration 65000, loss = 0.0108858
+I0504 08:56:26.413434 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00461048 (* 1 = 0.00461048 loss)
+I0504 08:56:26.413447 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00487665 (* 1 = 0.00487665 loss)
+I0504 08:56:26.413460 13354 sgd_solver.cpp:106] Iteration 65000, lr = 0.00015625
+I0504 08:56:31.973424 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:56:33.472620 13354 solver.cpp:228] Iteration 66000, loss = 0.0123274
+I0504 08:56:33.472647 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00545554 (* 1 = 0.00545554 loss)
+I0504 08:56:33.472653 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00753055 (* 1 = 0.00753055 loss)
+I0504 08:56:33.472658 13354 sgd_solver.cpp:106] Iteration 66000, lr = 0.00015625
+I0504 08:56:38.960558 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:56:40.471648 13354 solver.cpp:228] Iteration 67000, loss = 0.0109049
+I0504 08:56:40.471704 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00612473 (* 1 = 0.00612473 loss)
+I0504 08:56:40.471722 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00802471 (* 1 = 0.00802471 loss)
+I0504 08:56:40.471735 13354 sgd_solver.cpp:106] Iteration 67000, lr = 0.00015625
+I0504 08:56:46.019100 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:56:47.535156 13354 solver.cpp:228] Iteration 68000, loss = 0.0128013
+I0504 08:56:47.535192 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00410088 (* 1 = 0.00410088 loss)
+I0504 08:56:47.535202 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00423585 (* 1 = 0.00423585 loss)
+I0504 08:56:47.535208 13354 sgd_solver.cpp:106] Iteration 68000, lr = 0.00015625
+I0504 08:56:53.047909 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:56:54.553866 13354 solver.cpp:228] Iteration 69000, loss = 0.0127655
+I0504 08:56:54.553894 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00651807 (* 1 = 0.00651807 loss)
+I0504 08:56:54.553900 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0088341 (* 1 = 0.0088341 loss)
+I0504 08:56:54.553905 13354 sgd_solver.cpp:106] Iteration 69000, lr = 0.00015625
+I0504 08:57:00.057478 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:57:01.568347 13354 solver.cpp:337] Iteration 70000, Testing net (#0)
+I0504 08:57:01.568378 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:57:01.568387 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:57:01.902425 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9875
+I0504 08:57:01.902460 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9856
+I0504 08:57:01.905086 13354 solver.cpp:228] Iteration 70000, loss = 0.0122812
+I0504 08:57:01.905114 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00329179 (* 1 = 0.00329179 loss)
+I0504 08:57:01.905128 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00488935 (* 1 = 0.00488935 loss)
+I0504 08:57:01.905138 13354 sgd_solver.cpp:106] Iteration 70000, lr = 7.8125e-05
+I0504 08:57:06.901556 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:57:09.073974 13354 solver.cpp:228] Iteration 71000, loss = 0.0111294
+I0504 08:57:09.074002 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00523239 (* 1 = 0.00523239 loss)
+I0504 08:57:09.074009 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00642678 (* 1 = 0.00642678 loss)
+I0504 08:57:09.074014 13354 sgd_solver.cpp:106] Iteration 71000, lr = 7.8125e-05
+I0504 08:57:14.063962 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:57:16.588903 13354 solver.cpp:228] Iteration 72000, loss = 0.0110427
+I0504 08:57:16.589032 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00302551 (* 1 = 0.00302551 loss)
+I0504 08:57:16.589040 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00398601 (* 1 = 0.00398601 loss)
+I0504 08:57:16.589049 13354 sgd_solver.cpp:106] Iteration 72000, lr = 7.8125e-05
+I0504 08:57:21.499765 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:57:23.712713 13354 solver.cpp:228] Iteration 73000, loss = 0.0107808
+I0504 08:57:23.712743 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0038428 (* 1 = 0.0038428 loss)
+I0504 08:57:23.712749 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00450693 (* 1 = 0.00450693 loss)
+I0504 08:57:23.712755 13354 sgd_solver.cpp:106] Iteration 73000, lr = 7.8125e-05
+I0504 08:57:28.663959 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:57:30.847942 13354 solver.cpp:228] Iteration 74000, loss = 0.0112058
+I0504 08:57:30.847981 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00476511 (* 1 = 0.00476511 loss)
+I0504 08:57:30.847992 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00574348 (* 1 = 0.00574348 loss)
+I0504 08:57:30.847998 13354 sgd_solver.cpp:106] Iteration 74000, lr = 7.8125e-05
+I0504 08:57:35.766523 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:57:37.943675 13354 solver.cpp:337] Iteration 75000, Testing net (#0)
+I0504 08:57:37.943701 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:57:37.943706 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:57:38.280333 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9876
+I0504 08:57:38.280375 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9854
+I0504 08:57:38.283354 13354 solver.cpp:228] Iteration 75000, loss = 0.0106995
+I0504 08:57:38.283393 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00346791 (* 1 = 0.00346791 loss)
+I0504 08:57:38.283408 13354 solver.cpp:244]     Train net output #1: loss_single = 0.004599 (* 1 = 0.004599 loss)
+I0504 08:57:38.283422 13354 sgd_solver.cpp:106] Iteration 75000, lr = 7.8125e-05
+I0504 08:57:42.541909 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:57:45.379940 13354 solver.cpp:228] Iteration 76000, loss = 0.0125561
+I0504 08:57:45.379969 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0055646 (* 1 = 0.0055646 loss)
+I0504 08:57:45.379976 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00736671 (* 1 = 0.00736671 loss)
+I0504 08:57:45.379981 13354 sgd_solver.cpp:106] Iteration 76000, lr = 7.8125e-05
+I0504 08:57:49.597280 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:57:52.447003 13354 solver.cpp:228] Iteration 77000, loss = 0.0110124
+I0504 08:57:52.447057 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00330494 (* 1 = 0.00330494 loss)
+I0504 08:57:52.447069 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00605857 (* 1 = 0.00605857 loss)
+I0504 08:57:52.447080 13354 sgd_solver.cpp:106] Iteration 77000, lr = 7.8125e-05
+I0504 08:57:56.661034 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:57:59.500857 13354 solver.cpp:228] Iteration 78000, loss = 0.0106036
+I0504 08:57:59.500887 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00274689 (* 1 = 0.00274689 loss)
+I0504 08:57:59.500893 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00373876 (* 1 = 0.00373876 loss)
+I0504 08:57:59.500898 13354 sgd_solver.cpp:106] Iteration 78000, lr = 7.8125e-05
+I0504 08:58:03.714457 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:58:06.553119 13354 solver.cpp:228] Iteration 79000, loss = 0.0102688
+I0504 08:58:06.553149 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00373819 (* 1 = 0.00373819 loss)
+I0504 08:58:06.553156 13354 solver.cpp:244]     Train net output #1: loss_single = 0.004435 (* 1 = 0.004435 loss)
+I0504 08:58:06.553160 13354 sgd_solver.cpp:106] Iteration 79000, lr = 7.8125e-05
+I0504 08:58:10.772697 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:58:13.620748 13354 solver.cpp:337] Iteration 80000, Testing net (#0)
+I0504 08:58:13.620781 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:58:13.620792 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:58:13.955777 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9876
+I0504 08:58:13.955821 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9855
+I0504 08:58:13.958765 13354 solver.cpp:228] Iteration 80000, loss = 0.0109659
+I0504 08:58:13.958802 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00583539 (* 1 = 0.00583539 loss)
+I0504 08:58:13.958818 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00726343 (* 1 = 0.00726343 loss)
+I0504 08:58:13.958832 13354 sgd_solver.cpp:106] Iteration 80000, lr = 3.90625e-05
+I0504 08:58:17.532697 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:58:21.041879 13354 solver.cpp:228] Iteration 81000, loss = 0.0109444
+I0504 08:58:21.041959 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00412404 (* 1 = 0.00412404 loss)
+I0504 08:58:21.041970 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00500185 (* 1 = 0.00500185 loss)
+I0504 08:58:21.041975 13354 sgd_solver.cpp:106] Iteration 81000, lr = 3.90625e-05
+I0504 08:58:24.625530 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:58:28.100791 13354 solver.cpp:228] Iteration 82000, loss = 0.0101518
+I0504 08:58:28.100822 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00330113 (* 1 = 0.00330113 loss)
+I0504 08:58:28.100831 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00463369 (* 1 = 0.00463369 loss)
+I0504 08:58:28.100834 13354 sgd_solver.cpp:106] Iteration 82000, lr = 3.90625e-05
+I0504 08:58:31.686847 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:58:35.164654 13354 solver.cpp:228] Iteration 83000, loss = 0.0116169
+I0504 08:58:35.164682 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00507281 (* 1 = 0.00507281 loss)
+I0504 08:58:35.164688 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0101786 (* 1 = 0.0101786 loss)
+I0504 08:58:35.164693 13354 sgd_solver.cpp:106] Iteration 83000, lr = 3.90625e-05
+I0504 08:58:38.756541 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:58:42.269477 13354 solver.cpp:228] Iteration 84000, loss = 0.0107599
+I0504 08:58:42.269511 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00808737 (* 1 = 0.00808737 loss)
+I0504 08:58:42.269518 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00898543 (* 1 = 0.00898543 loss)
+I0504 08:58:42.269522 13354 sgd_solver.cpp:106] Iteration 84000, lr = 3.90625e-05
+I0504 08:58:45.889320 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:58:49.403234 13354 solver.cpp:337] Iteration 85000, Testing net (#0)
+I0504 08:58:49.403255 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:58:49.403260 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:58:49.744140 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9876
+I0504 08:58:49.744168 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9855
+I0504 08:58:49.746456 13354 solver.cpp:228] Iteration 85000, loss = 0.010674
+I0504 08:58:49.746477 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00519428 (* 1 = 0.00519428 loss)
+I0504 08:58:49.746484 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00576231 (* 1 = 0.00576231 loss)
+I0504 08:58:49.746490 13354 sgd_solver.cpp:106] Iteration 85000, lr = 3.90625e-05
+I0504 08:58:52.772012 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:58:56.925031 13354 solver.cpp:228] Iteration 86000, loss = 0.0106462
+I0504 08:58:56.925063 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00162745 (* 1 = 0.00162745 loss)
+I0504 08:58:56.925071 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00240948 (* 1 = 0.00240948 loss)
+I0504 08:58:56.925077 13354 sgd_solver.cpp:106] Iteration 86000, lr = 3.90625e-05
+I0504 08:58:59.848587 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:59:03.997572 13354 solver.cpp:228] Iteration 87000, loss = 0.0125123
+I0504 08:59:03.997601 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0036768 (* 1 = 0.0036768 loss)
+I0504 08:59:03.997608 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00467598 (* 1 = 0.00467598 loss)
+I0504 08:59:03.997612 13354 sgd_solver.cpp:106] Iteration 87000, lr = 3.90625e-05
+I0504 08:59:06.894888 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:59:11.039253 13354 solver.cpp:228] Iteration 88000, loss = 0.0118509
+I0504 08:59:11.039294 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00516675 (* 1 = 0.00516675 loss)
+I0504 08:59:11.039304 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00667536 (* 1 = 0.00667536 loss)
+I0504 08:59:11.039312 13354 sgd_solver.cpp:106] Iteration 88000, lr = 3.90625e-05
+I0504 08:59:13.941164 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:59:18.063038 13354 solver.cpp:228] Iteration 89000, loss = 0.0110474
+I0504 08:59:18.063076 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00537602 (* 1 = 0.00537602 loss)
+I0504 08:59:18.063084 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00607738 (* 1 = 0.00607738 loss)
+I0504 08:59:18.063091 13354 sgd_solver.cpp:106] Iteration 89000, lr = 3.90625e-05
+I0504 08:59:20.953670 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:59:25.086220 13354 solver.cpp:337] Iteration 90000, Testing net (#0)
+I0504 08:59:25.086324 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 08:59:25.086330 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 08:59:25.422570 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9876
+I0504 08:59:25.422610 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9855
+I0504 08:59:25.425470 13354 solver.cpp:228] Iteration 90000, loss = 0.0129263
+I0504 08:59:25.425508 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00516562 (* 1 = 0.00516562 loss)
+I0504 08:59:25.425523 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00902756 (* 1 = 0.00902756 loss)
+I0504 08:59:25.425536 13354 sgd_solver.cpp:106] Iteration 90000, lr = 1.95312e-05
+I0504 08:59:27.817842 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:59:32.585638 13354 solver.cpp:228] Iteration 91000, loss = 0.0121882
+I0504 08:59:32.585669 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00375224 (* 1 = 0.00375224 loss)
+I0504 08:59:32.585675 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00537837 (* 1 = 0.00537837 loss)
+I0504 08:59:32.585678 13354 sgd_solver.cpp:106] Iteration 91000, lr = 1.95312e-05
+I0504 08:59:34.839318 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:59:39.590456 13354 solver.cpp:228] Iteration 92000, loss = 0.0105677
+I0504 08:59:39.590484 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00743461 (* 1 = 0.00743461 loss)
+I0504 08:59:39.590490 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00863259 (* 1 = 0.00863259 loss)
+I0504 08:59:39.590495 13354 sgd_solver.cpp:106] Iteration 92000, lr = 1.95312e-05
+I0504 08:59:41.846796 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:59:46.890079 13354 solver.cpp:228] Iteration 93000, loss = 0.010985
+I0504 08:59:46.890115 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0048039 (* 1 = 0.0048039 loss)
+I0504 08:59:46.890126 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00520365 (* 1 = 0.00520365 loss)
+I0504 08:59:46.890132 13354 sgd_solver.cpp:106] Iteration 93000, lr = 1.95312e-05
+I0504 08:59:49.244537 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 08:59:54.004657 13354 solver.cpp:228] Iteration 94000, loss = 0.0100934
+I0504 08:59:54.004688 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00485203 (* 1 = 0.00485203 loss)
+I0504 08:59:54.004695 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00575084 (* 1 = 0.00575084 loss)
+I0504 08:59:54.004700 13354 sgd_solver.cpp:106] Iteration 94000, lr = 1.95312e-05
+I0504 08:59:56.265132 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 09:00:01.026114 13354 solver.cpp:337] Iteration 95000, Testing net (#0)
+I0504 09:00:01.026137 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 09:00:01.026141 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 09:00:01.362736 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9876
+I0504 09:00:01.362766 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.985501
+I0504 09:00:01.365241 13354 solver.cpp:228] Iteration 95000, loss = 0.0113578
+I0504 09:00:01.365265 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00415504 (* 1 = 0.00415504 loss)
+I0504 09:00:01.365273 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00628955 (* 1 = 0.00628955 loss)
+I0504 09:00:01.365281 13354 sgd_solver.cpp:106] Iteration 95000, lr = 1.95312e-05
+I0504 09:00:03.023705 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 09:00:08.468540 13354 solver.cpp:228] Iteration 96000, loss = 0.0110097
+I0504 09:00:08.468575 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00371119 (* 1 = 0.00371119 loss)
+I0504 09:00:08.468580 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00511278 (* 1 = 0.00511278 loss)
+I0504 09:00:08.468585 13354 sgd_solver.cpp:106] Iteration 96000, lr = 1.95312e-05
+I0504 09:00:10.065577 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 09:00:15.483989 13354 solver.cpp:228] Iteration 97000, loss = 0.0126026
+I0504 09:00:15.484017 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00276123 (* 1 = 0.00276123 loss)
+I0504 09:00:15.484024 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00491983 (* 1 = 0.00491983 loss)
+I0504 09:00:15.484027 13354 sgd_solver.cpp:106] Iteration 97000, lr = 1.95312e-05
+I0504 09:00:17.077962 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 09:00:22.496330 13354 solver.cpp:228] Iteration 98000, loss = 0.0107079
+I0504 09:00:22.496361 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.00387399 (* 1 = 0.00387399 loss)
+I0504 09:00:22.496371 13354 solver.cpp:244]     Train net output #1: loss_single = 0.00635748 (* 1 = 0.00635748 loss)
+I0504 09:00:22.496378 13354 sgd_solver.cpp:106] Iteration 98000, lr = 1.95312e-05
+I0504 09:00:24.139134 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 09:00:29.561853 13354 solver.cpp:228] Iteration 99000, loss = 0.0117566
+I0504 09:00:29.561954 13354 solver.cpp:244]     Train net output #0: loss_dual = 0.0057683 (* 1 = 0.0057683 loss)
+I0504 09:00:29.561962 13354 solver.cpp:244]     Train net output #1: loss_single = 0.0080595 (* 1 = 0.0080595 loss)
+I0504 09:00:29.561966 13354 sgd_solver.cpp:106] Iteration 99000, lr = 1.95312e-05
+I0504 09:00:31.156289 13354 blocking_queue.cpp:50] Data layer prefetch queue empty
+I0504 09:00:36.561811 13354 solver.cpp:454] Snapshotting to binary proto file mnist_iter_100000.caffemodel
+I0504 09:00:36.567083 13354 sgd_solver.cpp:273] Snapshotting solver state to binary proto file mnist_iter_100000.solverstate
+I0504 09:00:36.569586 13354 solver.cpp:317] Iteration 100000, loss = 0.0109174
+I0504 09:00:36.569607 13354 solver.cpp:337] Iteration 100000, Testing net (#0)
+I0504 09:00:36.569617 13354 net.cpp:709] Ignoring source layer loss_dual
+I0504 09:00:36.569622 13354 net.cpp:709] Ignoring source layer loss_single
+I0504 09:00:36.912583 13354 solver.cpp:404]     Test net output #0: accuracy_dual = 0.9876
+I0504 09:00:36.912627 13354 solver.cpp:404]     Test net output #1: accuracy_single = 0.9855
+I0504 09:00:36.912638 13354 solver.cpp:322] Optimization Done.
+I0504 09:00:36.912644 13354 caffe.cpp:254] Optimization Done.
