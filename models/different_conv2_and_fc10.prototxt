@@ -385,7 +385,7 @@ layer {
     name : "conv2_b_single"
   }
   convolution_param {
-    num_output: 36
+    num_output: 72
     kernel_size: 3
     stride: 2
     weight_filler {
